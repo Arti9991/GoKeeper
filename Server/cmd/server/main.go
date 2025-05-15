@@ -1,6 +1,11 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+
+	"github.com/Arti9991/GoKeeper/server/internal/server"
+)
 
 var (
 	buildVersion string = "N/A"
@@ -13,4 +18,9 @@ func main() {
 	fmt.Printf("Server build version: %s\n", buildVersion)
 	fmt.Printf("Server build date: %s\n", buildDate)
 	fmt.Printf("Server build commit: %s\n", buildCommit)
+
+	err := server.RunServer()
+	if err != nil {
+		log.Fatal(err)
+	}
 }

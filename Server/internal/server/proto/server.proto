@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package server;
+
+option go_package = "server/proto";
+
+message SaveDataRequset {
+  string id = 1;
+  bytes data = 2; 
+  string metainfo = 3;
+}
+
+message SaveDataResponse {
+}
+
+service Keeper {
+  rpc SaveData(SaveDataRequset) returns (SaveDataResponse);
+}
