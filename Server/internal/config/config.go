@@ -15,7 +15,7 @@ var FileConfig = true
 var ConfigPath = "Config.yaml"
 
 type Config struct {
-	HostAddr string `env:"RUN_ADDRESS" yaml:"host_address"`
+	HostAddr string `env:"HOST_ADDRESS" yaml:"host_address"`
 	//DBAdr     string `env:"DATABASE_URI" yaml:"database_info"`
 	InFileLog bool `yaml:"save_log_to_file"`
 }

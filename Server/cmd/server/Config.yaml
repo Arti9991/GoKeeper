@@ -1,2 +1,2 @@
-host_address: "localhost:8080"
+host_address: ":8082"
 save_log_to_file: true

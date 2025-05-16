@@ -1,0 +1,39 @@
+version: "3.9"
+services:
+  server:
+    build: .
+    container_name: keeper-server
+    ports:
+      - '8082:8082'
+    environment:
+      DATABASE_DSN: host=postgres-db user=myuser password=123456 dbname=KeeperInfo sslmode=disable
+      HOST_ADDRESS: :8082
+    depends_on:
+      - postgres-db
+    networks:
+      - keeper-network
+  postgres-db:
+    image: postgres
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: KeeperInfo
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - '5432:5432'
+    networks:
+      - keeper-network
+    # logging:
+    #   driver: none
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U myuser -d KeeperInfo" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+networks:
+  keeper-network:
+    name: keeper-network
+    driver: bridge
