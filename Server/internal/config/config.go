@@ -11,13 +11,13 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var FileConfig = true
+var FileConfig = false
 var ConfigPath = "Config.yaml"
 
 type Config struct {
-	HostAddr string `env:"HOST_ADDRESS" yaml:"host_address"`
-	//DBAdr     string `env:"DATABASE_URI" yaml:"database_info"`
-	InFileLog bool `yaml:"save_log_to_file"`
+	HostAddr  string `env:"HOST_ADDRESS" yaml:"host_address"`
+	DBAdr     string `env:"DATABASE_URI" yaml:"database_info"`
+	InFileLog bool   `yaml:"save_log_to_file"`
 }
 
 // инициализация конфигурации
@@ -36,7 +36,7 @@ func InitConf() Config {
 	}
 
 	flag.StringVar(&conf.HostAddr, "a", conf.HostAddr, "server host adress")
-	//flag.StringVar(&conf.DBAdr, "d", conf.DBAdr, "database connetion data") //"host=localhost user=myuser password=123456 dbname=Gophermart sslmode=disable"
+	flag.StringVar(&conf.DBAdr, "d", conf.DBAdr, "database connetion data") //"host=localhost user=myuser password=123456 dbname=Keeper sslmode=disable"
 	//flag.StringVar(&conf.AccurAddr, "r", conf.AccurAddr, "another api address")
 	flag.BoolVar(&conf.InFileLog, "l", conf.InFileLog, "enable logging in file")
 	flag.Parse()

@@ -4,7 +4,27 @@ package server;
 
 option go_package = "server/proto";
 
-message SaveDataRequset {
+message RegisterRequest {
+  string UserLogin = 1;
+  string UserPassword = 2;
+
+}
+
+message RegisterResponce {
+  string UserID = 1;
+}
+
+message LoginRequest {
+  string UserLogin = 1;
+  string UserPassword = 2;
+
+}
+
+message LoginResponce {
+  string UserID = 1;
+}
+
+message SaveDataRequest {
   string id = 1;
   bytes data = 2; 
   string metainfo = 3;
@@ -14,5 +34,7 @@ message SaveDataResponse {
 }
 
 service Keeper {
-  rpc SaveData(SaveDataRequset) returns (SaveDataResponse);
+  rpc RegisterUser(RegisterRequest) returns (RegisterResponce);
+  rpc Loginuser(LoginRequest) returns (LoginResponce);
+  rpc SaveData(SaveDataRequest) returns (SaveDataResponse);
 }

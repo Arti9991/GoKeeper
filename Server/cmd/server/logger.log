@@ -1,1 +1,4 @@
-{"level":"info","ts":"Thu, 15 May 2025 18:02:40 MSK","msg":"Logger initialyzed!","In file mode:":true}
+{"level":"info","ts":"Mon, 19 May 2025 21:35:12 MSK","msg":"Logger initialyzed!","In file mode:":true}
+{"level":"info","ts":"Mon, 19 May 2025 21:35:12 MSK","msg":"✓ connected to ShortURL db!"}
+{"level":"info","ts":"Mon, 19 May 2025 21:35:19 MSK","msg":"Recieved new request","Method":"/server.Keeper/Loginuser"}
+{"level":"info","ts":"Mon, 19 May 2025 21:35:19 MSK","msg":"Recieved new request","Method":"/server.Keeper/SaveData"}

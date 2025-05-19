@@ -7,18 +7,22 @@ import (
 
 	"github.com/Arti9991/GoKeeper/server/internal/config"
 	"github.com/Arti9991/GoKeeper/server/internal/logger"
+	"github.com/Arti9991/GoKeeper/server/internal/server/interceptors"
 	"github.com/Arti9991/GoKeeper/server/internal/server/proto"
+	"github.com/Arti9991/GoKeeper/server/internal/storage/pgstor"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
 
 type Server struct {
 	// структура с инфомрацией о сервере
-	Config config.Config
+	DBusers *pgstor.DBUsersStor
+	Config  config.Config
 	proto.UnimplementedKeeperServer
 }
 
 func InitServer() *Server {
+	var err error
 	Serv := new(Server)
 
 	Serv.Config = config.InitConf()
@@ -28,6 +32,11 @@ func InitServer() *Server {
 		zap.Bool("In file mode:", Serv.Config.InFileLog),
 	)
 
+	Serv.DBusers, err = pgstor.DBUsersinit(Serv.Config.DBAdr)
+	if err != nil {
+		logger.Log.Error("Error in creating users DB", zap.Error(err))
+		return Serv
+	}
 	return Serv
 }
 
@@ -41,8 +50,8 @@ func RunServer() error {
 		return err
 	}
 	// создаём gRPC-сервер без зарегистрированной службы
-	//interceptors := grpc.ChainUnaryInterceptor(atuhInterceptor, loggingInterceptor)
-	s := grpc.NewServer()
+	interceptors := grpc.ChainUnaryInterceptor(interceptors.AtuhInterceptor, interceptors.LoggingInterceptor)
+	s := grpc.NewServer(interceptors)
 
 	proto.RegisterKeeperServer(s, server)
 

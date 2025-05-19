@@ -1,2 +1,3 @@
 host_address: ":8082"
 save_log_to_file: true
+database_info: "host=localhost user=myuser password=123456 dbname=Keeper sslmode=disable"

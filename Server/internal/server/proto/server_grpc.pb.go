@@ -19,14 +19,18 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Keeper_SaveData_FullMethodName = "/server.Keeper/SaveData"
+	Keeper_RegisterUser_FullMethodName = "/server.Keeper/RegisterUser"
+	Keeper_Loginuser_FullMethodName    = "/server.Keeper/Loginuser"
+	Keeper_SaveData_FullMethodName     = "/server.Keeper/SaveData"
 )
 
 // KeeperClient is the client API for Keeper service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type KeeperClient interface {
-	SaveData(ctx context.Context, in *SaveDataRequset, opts ...grpc.CallOption) (*SaveDataResponse, error)
+	RegisterUser(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponce, error)
+	Loginuser(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponce, error)
+	SaveData(ctx context.Context, in *SaveDataRequest, opts ...grpc.CallOption) (*SaveDataResponse, error)
 }
 
 type keeperClient struct {
@@ -37,7 +41,27 @@ func NewKeeperClient(cc grpc.ClientConnInterface) KeeperClient {
 	return &keeperClient{cc}
 }
 
-func (c *keeperClient) SaveData(ctx context.Context, in *SaveDataRequset, opts ...grpc.CallOption) (*SaveDataResponse, error) {
+func (c *keeperClient) RegisterUser(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponce, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RegisterResponce)
+	err := c.cc.Invoke(ctx, Keeper_RegisterUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *keeperClient) Loginuser(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponce, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LoginResponce)
+	err := c.cc.Invoke(ctx, Keeper_Loginuser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *keeperClient) SaveData(ctx context.Context, in *SaveDataRequest, opts ...grpc.CallOption) (*SaveDataResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SaveDataResponse)
 	err := c.cc.Invoke(ctx, Keeper_SaveData_FullMethodName, in, out, cOpts...)
@@ -51,7 +75,9 @@ func (c *keeperClient) SaveData(ctx context.Context, in *SaveDataRequset, opts .
 // All implementations must embed UnimplementedKeeperServer
 // for forward compatibility.
 type KeeperServer interface {
-	SaveData(context.Context, *SaveDataRequset) (*SaveDataResponse, error)
+	RegisterUser(context.Context, *RegisterRequest) (*RegisterResponce, error)
+	Loginuser(context.Context, *LoginRequest) (*LoginResponce, error)
+	SaveData(context.Context, *SaveDataRequest) (*SaveDataResponse, error)
 	mustEmbedUnimplementedKeeperServer()
 }
 
@@ -62,7 +88,13 @@ type KeeperServer interface {
 // pointer dereference when methods are called.
 type UnimplementedKeeperServer struct{}
 
-func (UnimplementedKeeperServer) SaveData(context.Context, *SaveDataRequset) (*SaveDataResponse, error) {
+func (UnimplementedKeeperServer) RegisterUser(context.Context, *RegisterRequest) (*RegisterResponce, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterUser not implemented")
+}
+func (UnimplementedKeeperServer) Loginuser(context.Context, *LoginRequest) (*LoginResponce, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Loginuser not implemented")
+}
+func (UnimplementedKeeperServer) SaveData(context.Context, *SaveDataRequest) (*SaveDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SaveData not implemented")
 }
 func (UnimplementedKeeperServer) mustEmbedUnimplementedKeeperServer() {}
@@ -86,8 +118,44 @@ func RegisterKeeperServer(s grpc.ServiceRegistrar, srv KeeperServer) {
 	s.RegisterService(&Keeper_ServiceDesc, srv)
 }
 
+func _Keeper_RegisterUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegisterRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KeeperServer).RegisterUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Keeper_RegisterUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KeeperServer).RegisterUser(ctx, req.(*RegisterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Keeper_Loginuser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LoginRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KeeperServer).Loginuser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Keeper_Loginuser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KeeperServer).Loginuser(ctx, req.(*LoginRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Keeper_SaveData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SaveDataRequset)
+	in := new(SaveDataRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -99,7 +167,7 @@ func _Keeper_SaveData_Handler(srv interface{}, ctx context.Context, dec func(int
 		FullMethod: Keeper_SaveData_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(KeeperServer).SaveData(ctx, req.(*SaveDataRequset))
+		return srv.(KeeperServer).SaveData(ctx, req.(*SaveDataRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -111,6 +179,14 @@ var Keeper_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "server.Keeper",
 	HandlerType: (*KeeperServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "RegisterUser",
+			Handler:    _Keeper_RegisterUser_Handler,
+		},
+		{
+			MethodName: "Loginuser",
+			Handler:    _Keeper_Loginuser_Handler,
+		},
 		{
 			MethodName: "SaveData",
 			Handler:    _Keeper_SaveData_Handler,

@@ -8,7 +8,7 @@ import (
 )
 
 // GetAddr получение исходного URL по укороченному
-func (s *Server) SaveData(ctx context.Context, in *pb.SaveDataRequset) (*pb.SaveDataResponse, error) {
+func (s *Server) SaveData(ctx context.Context, in *pb.SaveDataRequest) (*pb.SaveDataResponse, error) {
 	var res pb.SaveDataResponse
 
 	fmt.Println("Input ID", in.Id)
