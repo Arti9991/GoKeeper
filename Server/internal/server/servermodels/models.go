@@ -30,6 +30,7 @@ type SaveDataInfo struct {
 	MetaInfo  string
 	SaveTime  time.Time
 	Type      string
+	Data      []byte
 }
 
 var ErrNewerData = errors.New("Newer data at server")

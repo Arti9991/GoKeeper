@@ -215,9 +215,11 @@ func (x *LoginResponce) GetUserID() string {
 
 type SaveDataRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Data          []byte                 `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
-	Metainfo      string                 `protobuf:"bytes,3,opt,name=metainfo,proto3" json:"metainfo,omitempty"`
+	StorageID     string                 `protobuf:"bytes,1,opt,name=storageID,proto3" json:"storageID,omitempty"`
+	Metainfo      string                 `protobuf:"bytes,2,opt,name=metainfo,proto3" json:"metainfo,omitempty"`
+	DataType      string                 `protobuf:"bytes,3,opt,name=dataType,proto3" json:"dataType,omitempty"`
+	Time          string                 `protobuf:"bytes,4,opt,name=time,proto3" json:"time,omitempty"`
+	Data          []byte                 `protobuf:"bytes,5,opt,name=data,proto3" json:"data,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -252,9 +254,30 @@ func (*SaveDataRequest) Descriptor() ([]byte, []int) {
 	return file_proto_server_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *SaveDataRequest) GetId() string {
+func (x *SaveDataRequest) GetStorageID() string {
 	if x != nil {
-		return x.Id
+		return x.StorageID
+	}
+	return ""
+}
+
+func (x *SaveDataRequest) GetMetainfo() string {
+	if x != nil {
+		return x.Metainfo
+	}
+	return ""
+}
+
+func (x *SaveDataRequest) GetDataType() string {
+	if x != nil {
+		return x.DataType
+	}
+	return ""
+}
+
+func (x *SaveDataRequest) GetTime() string {
+	if x != nil {
+		return x.Time
 	}
 	return ""
 }
@@ -264,13 +287,6 @@ func (x *SaveDataRequest) GetData() []byte {
 		return x.Data
 	}
 	return nil
-}
-
-func (x *SaveDataRequest) GetMetainfo() string {
-	if x != nil {
-		return x.Metainfo
-	}
-	return ""
 }
 
 type SaveDataResponse struct {
@@ -323,11 +339,13 @@ const file_proto_server_proto_rawDesc = "" +
 	"\tUserLogin\x18\x01 \x01(\tR\tUserLogin\x12\"\n" +
 	"\fUserPassword\x18\x02 \x01(\tR\fUserPassword\"'\n" +
 	"\rLoginResponce\x12\x16\n" +
-	"\x06UserID\x18\x01 \x01(\tR\x06UserID\"Q\n" +
-	"\x0fSaveDataRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04data\x18\x02 \x01(\fR\x04data\x12\x1a\n" +
-	"\bmetainfo\x18\x03 \x01(\tR\bmetainfo\"\x12\n" +
+	"\x06UserID\x18\x01 \x01(\tR\x06UserID\"\x8f\x01\n" +
+	"\x0fSaveDataRequest\x12\x1c\n" +
+	"\tstorageID\x18\x01 \x01(\tR\tstorageID\x12\x1a\n" +
+	"\bmetainfo\x18\x02 \x01(\tR\bmetainfo\x12\x1a\n" +
+	"\bdataType\x18\x03 \x01(\tR\bdataType\x12\x12\n" +
+	"\x04time\x18\x04 \x01(\tR\x04time\x12\x12\n" +
+	"\x04data\x18\x05 \x01(\fR\x04data\"\x12\n" +
 	"\x10SaveDataResponse2\xc4\x01\n" +
 	"\x06Keeper\x12A\n" +
 	"\fRegisterUser\x12\x17.server.RegisterRequest\x1a\x18.server.RegisterResponce\x128\n" +

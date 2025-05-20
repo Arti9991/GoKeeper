@@ -1,3 +1,4 @@
-{"level":"info","ts":"Tue, 20 May 2025 17:57:55 MSK","msg":"Logger initialyzed!","In file mode:":true}
-{"level":"info","ts":"Tue, 20 May 2025 17:57:56 MSK","msg":"✓ connected to Users db!"}
-{"level":"info","ts":"Tue, 20 May 2025 17:57:56 MSK","msg":"✓ connected to datainfo db!"}
+{"level":"info","ts":"Tue, 20 May 2025 22:49:56 MSK","msg":"Logger initialyzed!","In file mode:":true}
+{"level":"info","ts":"Tue, 20 May 2025 22:49:56 MSK","msg":"✓ connected to Users db!"}
+{"level":"info","ts":"Tue, 20 May 2025 22:49:56 MSK","msg":"✓ connected to datainfo db!"}
+{"level":"error","ts":"Tue, 20 May 2025 22:49:56 MSK","msg":"Error in creating directory","error":"mkdir D:/Course/Practicum/GoKeeper/Server/storage/: Cannot create a file when that file already exists."}

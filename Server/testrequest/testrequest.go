@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	pb "github.com/Arti9991/GoKeeper/server/internal/server/proto"
 
@@ -59,11 +60,14 @@ func BaseTestKeeper(c pb.KeeperClient) {
 	var header metadata.MD
 	md := metadata.New(map[string]string{"UserID": respReg.UserID})
 	ctx2 := metadata.NewOutgoingContext(context.Background(), md)
-	// // добавляем пользователей
+
+	CurrTime := time.Now().Format(time.RFC3339)
 	_, err = c.SaveData(ctx2, &pb.SaveDataRequest{
-		Id:       "1",
-		Data:     []byte("string"),
-		Metainfo: "This is meta info",
+		StorageID: "1",
+		Data:      []byte("Hello string!"),
+		DataType:  "TEXT",
+		Metainfo:  "This is meta info",
+		Time:      CurrTime,
 	}, grpc.Header(&header))
 	if err != nil {
 		fmt.Println(err)

@@ -6,6 +6,7 @@
 *.dylib
 *.txt
 *.csv
+*.log
 
 # Test binary, built with `go test -c`
 *.test
@@ -20,6 +21,7 @@ cmd/shortener/shortener
 
 # Dependency directories (remove the comment below to include it)
 vendor/
+server/storage
 
 # IDEs directories
 .idea

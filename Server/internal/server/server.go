@@ -9,6 +9,7 @@ import (
 	"github.com/Arti9991/GoKeeper/server/internal/logger"
 	"github.com/Arti9991/GoKeeper/server/internal/server/interceptors"
 	"github.com/Arti9991/GoKeeper/server/internal/server/proto"
+	"github.com/Arti9991/GoKeeper/server/internal/storage/binstor"
 	"github.com/Arti9991/GoKeeper/server/internal/storage/pgstor"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -18,6 +19,7 @@ type Server struct {
 	// структура с инфомрацией о сервере
 	DBusers *pgstor.DBUsersStor
 	DBData  *pgstor.DBStor
+	BinStor *binstor.BinStor
 	Config  config.Config
 	proto.UnimplementedKeeperServer
 }
@@ -44,6 +46,8 @@ func InitServer() *Server {
 		logger.Log.Error("Error in creating data DB", zap.Error(err))
 		return Serv
 	}
+
+	Serv.BinStor = binstor.NewBinStor()
 
 	return Serv
 }
