@@ -17,6 +17,7 @@ import (
 type Server struct {
 	// структура с инфомрацией о сервере
 	DBusers *pgstor.DBUsersStor
+	DBData  *pgstor.DBStor
 	Config  config.Config
 	proto.UnimplementedKeeperServer
 }
@@ -32,11 +33,18 @@ func InitServer() *Server {
 		zap.Bool("In file mode:", Serv.Config.InFileLog),
 	)
 
-	Serv.DBusers, err = pgstor.DBUsersinit(Serv.Config.DBAdr)
+	Serv.DBusers, err = pgstor.DBUsersInit(Serv.Config.DBAdr)
 	if err != nil {
 		logger.Log.Error("Error in creating users DB", zap.Error(err))
 		return Serv
 	}
+
+	Serv.DBData, err = pgstor.DBDataInit(Serv.Config.DBAdr)
+	if err != nil {
+		logger.Log.Error("Error in creating data DB", zap.Error(err))
+		return Serv
+	}
+
 	return Serv
 }
 

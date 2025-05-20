@@ -1,69 +1,147 @@
 package pgstor
 
-// import (
-// 	"database/sql"
-// 	"errors"
+import (
+	"database/sql"
+	"errors"
+	"strings"
+	"time"
 
-// 	"github.com/Arti9991/GoKeeper/server/internal/logger"
+	_ "github.com/jackc/pgx/v5/stdlib"
+	"go.uber.org/zap"
+
+	"github.com/Arti9991/GoKeeper/server/internal/logger"
+	"github.com/Arti9991/GoKeeper/server/internal/server/servermodels"
+)
+
+var (
+	QuerryCreateType = `CREATE TYPE types AS ENUM('BINARY','CARD','TEXT', 'AUTH');`
+	QuerryCreateData = `CREATE TABLE IF NOT EXISTS datainfo (
+		id SERIAL PRIMARY KEY,
+		user_id VARCHAR(16),
+		storage_id VARCHAR(32) NOT NULL UNIQUE,
+		meta_info TEXT,
+		data_type types,
+		saved_time TIMESTAMP
+		);`
+	QuerrySaveDataInfo = `INSERT INTO datainfo
+	(id, user_id, storage_id, meta_info, data_type, saved_time)
+  	VALUES  (DEFAULT, $1, $2, $3, $4, $5);`
+	QuerryGetDataTime = `SELECT saved_time FROM  datainfo
+	WHERE storage_id = $1 AND user_id = $2`
+	QuerryGetServDataInfo = `SELECT meta_info, data_type FROM  datainfo
+	WHERE storage_id = $1 AND user_id = $2`
+	QuerryUpdateDataInfo = `UPDATE datainfo
+	SET meta_info = $3, data_type = $4, saved_time = $5
+  	WHERE storage_id = $1 AND user_id = $2`
+
+//		QuerryUpdateDataInfo = `WITH updated AS (
+//	    UPDATE datainfo
+//	    SET user_id = $1, storage_id = $3, meta_info = $4, saved_time = $5,
+//	    WHERE storage_id = $2 AND saved_time > $5
+//	    RETURNING *
+//
 // )
+// -- Если обновилось — вернём обновлённую строку, иначе — старую
+// SELECT * FROM updated
+// UNION ALL
+// SELECT * FROM datainfo WHERE storage_id = $2 AND NOT EXISTS (SELECT 1 FROM updated);`
+)
 
-// var (
-// 	QuerryCreate = `CREATE TABLE IF NOT EXISTS keeper (
-// 		id SERIAL PRIMARY KEY,
-// 		user_id VARCHAR(16),
-// 		user_login 	VARCHAR(100) NOT NULL UNIQUE,
-// 		user_password VARCHAR(64) NOT NULL,
-// 		storage_id VARCHAR(32) NOT NULL UNIQUE,
-// 		meta_info TEXT,
-// 		saved_time TIMESTAMP,
-// 		registr_data_flag BOOLEAN NOT NULL DEFAULT FALSE,
-// 		card_info_flag BOOLEAN NOT NULL DEFAULT FALSE,
-// 		text_info_flag BOOLEAN NOT NULL DEFAULT FALSE,
-// 		binary_data_flag BOOLEAN NOT NULL DEFAULT FALSE,
-// 		);`
-// 	QuerryNewUser = `INSERT INTO keeper
-// 	(id, user_id, user_login, user_password, storage_id, saved_time)
-//   	VALUES  (DEFAULT, $1, $2, $3, $4, $5);`
-// )
+// DBStor структура для интерфейсов базы данных.
+type DBStor struct {
+	DB     *sql.DB // соединение с базой
+	DBInfo string  // информация для подключения к базе
+}
 
-// // DBStor структура для интерфейсов базы данных.
-// type DBStor struct {
-// 	DB     *sql.DB // соединение с базой
-// 	DBInfo string  // информация для подключения к базе
-// }
+// DBinit инициализация хранилища и создание/подключение к таблице.
+func DBDataInit(DBInfo string) (*DBStor, error) {
+	var db DBStor
+	var err error
 
-// // DBinit инициализация хранилища и создание/подключение к таблице.
-// func DBinit(DBInfo string) (*DBStor, error) {
-// 	var db DBStor
-// 	var err error
+	db.DBInfo = DBInfo
 
-// 	db.DBInfo = DBInfo
+	db.DB, err = sql.Open("pgx", DBInfo)
+	if err != nil && DBInfo != "" {
+		// если в таблице есть неопределенный тип, определяем его
+		if strings.Contains(err.Error(), "SQLSTATE 42710") {
+			// определеяем тип для хранения типа данных
+			_, err = db.DB.Exec(QuerryCreateType)
+			if err != nil {
+				logger.Log.Error("Error in creating datainfo Type Db", zap.Error(err))
+				return &DBStor{}, err
+			}
 
-// 	db.DB, err = sql.Open("pgx", DBInfo)
-// 	if err != nil && DBInfo != "" {
-// 		return &DBStor{}, err
-// 	} else if DBInfo == "" {
-// 		return &DBStor{}, errors.New("turning off data base mode by command dbinfo = _")
-// 	}
+			// создаем таблицу для ифнормации о данных
+			_, err = db.DB.Exec(QuerryCreateData)
+			if err != nil {
+				logger.Log.Error("Error in creating datainfo Db", zap.Error(err))
+				return &DBStor{}, err
+			}
 
-// 	if err = db.DB.Ping(); err != nil {
-// 		return &DBStor{}, err
-// 	}
+			if err = db.DB.Ping(); err != nil {
+				logger.Log.Error("Error in ping datainfo Db", zap.Error(err))
+				return &DBStor{}, err
+			}
+			logger.Log.Info("✓ connected to datainfo db! with new status type!")
+			return &db, nil
+		} else {
+			logger.Log.Error("Error in creating datainfo Db", zap.Error(err))
+			return &DBStor{}, err
+		}
+	} else if DBInfo == "" {
+		return &DBStor{}, errors.New("turning off data base mode by command dbinfo = _")
+	}
 
-// 	_, err = db.DB.Exec(QuerryCreate)
-// 	if err != nil {
-// 		return &DBStor{}, err
-// 	}
-// 	logger.Log.Info("✓ connected to ShortURL db!")
-// 	return &db, nil
-// }
+	if err = db.DB.Ping(); err != nil {
+		logger.Log.Error("Error in ping datainfo Db", zap.Error(err))
+		return &DBStor{}, err
+	}
 
-// func (db *DBStor) SaveNewUser(userID string, userLogin string, userPassw string) error {
-// 	var err error
+	_, err = db.DB.Exec(QuerryCreateData)
+	if err != nil {
+		logger.Log.Error("Error in creating datainfo Db", zap.Error(err))
+		return &DBStor{}, err
+	}
+	logger.Log.Info("✓ connected to datainfo db!")
+	return &db, nil
+}
 
-// 	_, err = db.DB.Exec(QuerryNewUser, userID, userLogin, userPassw, "registration", )
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
+func (db *DBStor) SaveNewData(userID string, DataInf servermodels.SaveDataInfo) (servermodels.SaveDataInfo, error) {
+	var err error
+	var outData servermodels.SaveDataInfo
+	_, err = db.DB.Exec(QuerrySaveDataInfo, userID, DataInf.StorageID, DataInf.MetaInfo, DataInf.Type, DataInf.SaveTime)
+	if err != nil {
+		if strings.Contains(err.Error(), "SQLSTATE 23505") {
+			var BaseTime time.Time
+			row := db.DB.QueryRow(QuerryGetDataTime, DataInf.StorageID, userID)
+			err = row.Scan(&BaseTime)
+			if err != nil {
+				logger.Log.Error("Error in getting saved time form datainfo Db", zap.Error(err))
+				return outData, err
+			}
+			if BaseTime.After(DataInf.SaveTime) {
+				row := db.DB.QueryRow(QuerryGetServDataInfo, DataInf.StorageID, userID)
+				err = row.Scan(&outData.MetaInfo, &outData.Type)
+				if err != nil {
+					logger.Log.Error("Error in getting saved time form datainfo Db", zap.Error(err))
+					return outData, err
+				}
+				outData.SaveTime = BaseTime
+				outData.UserID = userID
+				outData.StorageID = DataInf.StorageID
+				return outData, servermodels.ErrNewerData
+			} else {
+				_, err = db.DB.Exec(QuerryUpdateDataInfo, DataInf.StorageID, userID, DataInf.MetaInfo, DataInf.Type, DataInf.SaveTime)
+				if err != nil {
+					logger.Log.Error("Error in update newer data to datainfo Db", zap.Error(err))
+					return outData, err
+				}
+				return outData, nil
+			}
+		} else {
+			logger.Log.Error("Error in saving data to datainfo Db", zap.Error(err))
+			return outData, err
+		}
+	}
+	return outData, nil
+}

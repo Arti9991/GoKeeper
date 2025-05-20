@@ -1,4 +1,3 @@
-{"level":"info","ts":"Mon, 19 May 2025 21:35:12 MSK","msg":"Logger initialyzed!","In file mode:":true}
-{"level":"info","ts":"Mon, 19 May 2025 21:35:12 MSK","msg":"✓ connected to ShortURL db!"}
-{"level":"info","ts":"Mon, 19 May 2025 21:35:19 MSK","msg":"Recieved new request","Method":"/server.Keeper/Loginuser"}
-{"level":"info","ts":"Mon, 19 May 2025 21:35:19 MSK","msg":"Recieved new request","Method":"/server.Keeper/SaveData"}
+{"level":"info","ts":"Tue, 20 May 2025 17:57:55 MSK","msg":"Logger initialyzed!","In file mode:":true}
+{"level":"info","ts":"Tue, 20 May 2025 17:57:56 MSK","msg":"✓ connected to Users db!"}
+{"level":"info","ts":"Tue, 20 May 2025 17:57:56 MSK","msg":"✓ connected to datainfo db!"}

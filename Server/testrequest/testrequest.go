@@ -39,14 +39,7 @@ func BaseTestKeeper(c pb.KeeperClient) {
 	// md := metadata.New(map[string]string{"UserID": "8c537969b84ad4eb0a73e29b3f2a9030"})
 	ctx := context.Background()
 
-	// respReg, err := c.Loginuser(ctx, &pb.LoginRequest{
-	// 	UserLogin:    "TestUser",
-	// 	UserPassword: "123456",
-	// })
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	respReg, err := c.RegisterUser(ctx, &pb.RegisterRequest{
+	respReg, err := c.Loginuser(ctx, &pb.LoginRequest{
 		UserLogin:    "TestUser",
 		UserPassword: "123456",
 	})
@@ -54,6 +47,15 @@ func BaseTestKeeper(c pb.KeeperClient) {
 		log.Fatal(err)
 	}
 
+	// respReg, err := c.RegisterUser(ctx, &pb.RegisterRequest{
+	// 	UserLogin:    "TestUser",
+	// 	UserPassword: "123456",
+	// })
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	fmt.Println(respReg.UserID)
 	var header metadata.MD
 	md := metadata.New(map[string]string{"UserID": respReg.UserID})
 	ctx2 := metadata.NewOutgoingContext(context.Background(), md)

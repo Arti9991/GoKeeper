@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"time"
 )
 
 type UserInfo struct {
@@ -22,3 +23,13 @@ func CodePassword(src string) string {
 }
 
 var ErrorNoSuchUser = errors.New("No user with this login")
+
+type SaveDataInfo struct {
+	UserID    string
+	StorageID string
+	MetaInfo  string
+	SaveTime  time.Time
+	Type      string
+}
+
+var ErrNewerData = errors.New("Newer data at server")

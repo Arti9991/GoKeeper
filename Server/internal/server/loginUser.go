@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"crypto/rand"
 	"fmt"
 
 	"github.com/Arti9991/GoKeeper/server/internal/logger"
@@ -31,11 +30,11 @@ func (s *Server) Loginuser(ctx context.Context, in *pb.LoginRequest) (*pb.LoginR
 
 	fmt.Println(codedPassw)
 
-	UserID := rand.Text()[0:16]
+	//UserID := rand.Text()[0:16]
 
-	fmt.Println(UserID)
+	//fmt.Println(UserID)
 
-	basePassw, err := s.DBusers.GetUser(in.UserLogin)
+	UserID, basePassw, err := s.DBusers.GetUser(in.UserLogin)
 	if err == servermodels.ErrorNoSuchUser {
 		return &res, status.Error(codes.PermissionDenied, `Неверное имя пользователя или пароль`)
 	} else if err != nil {
