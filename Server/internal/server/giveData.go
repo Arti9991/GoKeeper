@@ -23,13 +23,13 @@ func (s *Server) GiveData(ctx context.Context, in *pb.GiveDataRequest) (*pb.Give
 		return &res, status.Errorf(codes.Aborted, `Пользователь не авторизован`)
 	}
 
-	getData, err := s.DBData.GetData(UserInfo.UserID, in.StorageID)
+	getData, err := s.InfoStor.GetData(UserInfo.UserID, in.StorageID)
 	if err != nil {
 		logger.Log.Error("Error in get datainfo from DB", zap.Error(err))
 		return &res, status.Error(codes.Aborted, `Ошибка в получении информации о данных`)
 	}
 
-	binData, err := s.BinStor.GetBinData(in.StorageID)
+	binData, err := s.BinStor.GetBinData(UserInfo.UserID, in.StorageID)
 	if err != nil {
 		logger.Log.Error("Error in get data from bin storage", zap.Error(err))
 		return &res, status.Error(codes.Aborted, `Ошибка в получении данных из хранилища`)

@@ -23,7 +23,7 @@ func (s *Server) GiveDataList(ctx context.Context, in *pb.GiveDataListRequest) (
 		return &res, status.Errorf(codes.Aborted, `Пользователь не авторизован`)
 	}
 
-	getData, err := s.DBData.GetDataList(UserInfo.UserID)
+	getData, err := s.InfoStor.GetDataList(UserInfo.UserID)
 	if err != nil {
 		logger.Log.Error("Error in get datainfo from DB", zap.Error(err))
 		return &res, status.Error(codes.Aborted, `Ошибка в получении информации о данных`)

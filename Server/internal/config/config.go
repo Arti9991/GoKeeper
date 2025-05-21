@@ -46,6 +46,16 @@ func InitConf() Config {
 	return conf
 }
 
+func InitConfTest() Config {
+
+	var conf Config
+
+	conf.HostAddr = ":8081"
+	conf.InFileLog = false
+
+	return conf
+}
+
 // чтение конфигурации из файла
 func ReadConfig(cfgFilePath string) Config {
 	var config Config

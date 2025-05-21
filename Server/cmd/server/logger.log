@@ -1,8 +1,4 @@
-{"level":"info","ts":"Wed, 21 May 2025 14:05:47 MSK","msg":"Logger initialyzed!","In file mode:":true}
-{"level":"info","ts":"Wed, 21 May 2025 14:05:47 MSK","msg":"✓ connected to Users db!"}
-{"level":"info","ts":"Wed, 21 May 2025 14:05:47 MSK","msg":"✓ connected to datainfo db!"}
-{"level":"error","ts":"Wed, 21 May 2025 14:05:47 MSK","msg":"Error in creating directory","error":"mkdir D:/Course/Practicum/GoKeeper/Server/storage/: Cannot create a file when that file already exists."}
-{"level":"info","ts":"Wed, 21 May 2025 14:05:57 MSK","msg":"Recieved new request","Method":"/server.Keeper/Loginuser"}
-{"level":"info","ts":"Wed, 21 May 2025 14:05:57 MSK","msg":"Recieved new request","Method":"/server.Keeper/SaveData"}
-{"level":"info","ts":"Wed, 21 May 2025 14:05:57 MSK","msg":"Recieved new request","Method":"/server.Keeper/GiveData"}
-{"level":"info","ts":"Wed, 21 May 2025 14:05:57 MSK","msg":"Recieved new request","Method":"/server.Keeper/GiveDataList"}
+{"level":"info","ts":"Wed, 21 May 2025 14:41:24 MSK","msg":"Logger initialyzed!","In file mode:":true}
+{"level":"info","ts":"Wed, 21 May 2025 14:41:24 MSK","msg":"✓ connected to Users db!"}
+{"level":"info","ts":"Wed, 21 May 2025 14:41:24 MSK","msg":"✓ connected to datainfo db!"}
+{"level":"error","ts":"Wed, 21 May 2025 14:41:24 MSK","msg":"Error in creating directory","error":"mkdir D:/Course/Practicum/GoKeeper/Server/storage/: Cannot create a file when that file already exists."}

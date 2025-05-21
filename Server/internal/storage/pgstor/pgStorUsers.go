@@ -25,6 +25,11 @@ var (
 	WHERE user_login = $1;`
 )
 
+type UserStor interface {
+	SaveNewUser(userID string, userLogin string, userPassw string) error
+	GetUser(userLogin string) (string, string, error)
+}
+
 // DBUsersStor структура для.
 type DBUsersStor struct {
 	DB     *sql.DB // соединение с базой

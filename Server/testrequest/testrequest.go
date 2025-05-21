@@ -40,21 +40,21 @@ func BaseTestKeeper(c pb.KeeperClient) {
 	// md := metadata.New(map[string]string{"UserID": "8c537969b84ad4eb0a73e29b3f2a9030"})
 	ctx := context.Background()
 
-	// respReg, err := c.Loginuser(ctx, &pb.LoginRequest{
-	// 	UserLogin:    "TestUser",
-	// 	UserPassword: "123456",
-	// })
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	respReg, err := c.RegisterUser(ctx, &pb.RegisterRequest{
-		UserLogin:    "TestUserSECOND",
-		UserPassword: "123456789",
+	respReg, err := c.Loginuser(ctx, &pb.LoginRequest{
+		UserLogin:    "TestUser",
+		UserPassword: "123456",
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// respReg, err := c.RegisterUser(ctx, &pb.RegisterRequest{
+	// 	UserLogin:    "TestUserSECOND",
+	// 	UserPassword: "123456789",
+	// })
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	fmt.Println(respReg.UserID)
 	var header metadata.MD
@@ -63,9 +63,9 @@ func BaseTestKeeper(c pb.KeeperClient) {
 
 	CurrTime := time.Now().Format(time.RFC850)
 	savedData, err := c.SaveData(ctx2, &pb.SaveDataRequest{
-		Data:     []byte("Hello there!"),
+		Data:     []byte("Hello there! UPDATE Not there... HERE!!!"),
 		DataType: "TEXT",
-		Metainfo: "second METAINFO",
+		Metainfo: "second METAINFO updated",
 		Time:     CurrTime,
 	}, grpc.Header(&header))
 	if err != nil {

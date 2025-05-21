@@ -34,7 +34,7 @@ func (s *Server) Loginuser(ctx context.Context, in *pb.LoginRequest) (*pb.LoginR
 
 	//fmt.Println(UserID)
 
-	UserID, basePassw, err := s.DBusers.GetUser(in.UserLogin)
+	UserID, basePassw, err := s.UserStor.GetUser(in.UserLogin)
 	if err == servermodels.ErrorNoSuchUser {
 		return &res, status.Error(codes.PermissionDenied, `Неверное имя пользователя или пароль`)
 	} else if err != nil {

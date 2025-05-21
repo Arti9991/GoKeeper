@@ -36,7 +36,7 @@ func (s *Server) RegisterUser(ctx context.Context, in *pb.RegisterRequest) (*pb.
 
 	fmt.Println(UserID)
 
-	err := s.DBusers.SaveNewUser(UserID, in.UserLogin, codedPassw)
+	err := s.UserStor.SaveNewUser(UserID, in.UserLogin, codedPassw)
 	if err != nil {
 		return &res, status.Error(codes.Unavailable, `Ошибка в сохранении пользователя`)
 	}

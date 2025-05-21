@@ -43,7 +43,7 @@ func (s *Server) SaveData(ctx context.Context, in *pb.SaveDataRequest) (*pb.Save
 		SaveDataInfo.SaveTime = time.Now()
 	}
 
-	getData, err := s.DBData.SaveNewData(UserInfo.UserID, SaveDataInfo)
+	getData, err := s.InfoStor.SaveNewData(UserInfo.UserID, SaveDataInfo)
 	if err != nil {
 		if err == servermodels.ErrNewerData {
 			fmt.Println(getData)

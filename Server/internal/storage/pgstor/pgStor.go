@@ -52,6 +52,12 @@ var (
 // SELECT * FROM datainfo WHERE storage_id = $2 AND NOT EXISTS (SELECT 1 FROM updated);`
 )
 
+type InfoStorage interface {
+	SaveNewData(userID string, DataInf servermodels.SaveDataInfo) (servermodels.SaveDataInfo, error)
+	GetData(userID string, storageID string) (servermodels.SaveDataInfo, error)
+	GetDataList(userID string) ([]servermodels.SaveDataInfo, error)
+}
+
 // DBStor структура для интерфейсов базы данных.
 type DBStor struct {
 	DB     *sql.DB // соединение с базой
