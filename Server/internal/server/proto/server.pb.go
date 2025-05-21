@@ -215,11 +215,10 @@ func (x *LoginResponce) GetUserID() string {
 
 type SaveDataRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	StorageID     string                 `protobuf:"bytes,1,opt,name=storageID,proto3" json:"storageID,omitempty"`
-	Metainfo      string                 `protobuf:"bytes,2,opt,name=metainfo,proto3" json:"metainfo,omitempty"`
-	DataType      string                 `protobuf:"bytes,3,opt,name=dataType,proto3" json:"dataType,omitempty"`
-	Time          string                 `protobuf:"bytes,4,opt,name=time,proto3" json:"time,omitempty"`
-	Data          []byte                 `protobuf:"bytes,5,opt,name=data,proto3" json:"data,omitempty"`
+	Metainfo      string                 `protobuf:"bytes,1,opt,name=metainfo,proto3" json:"metainfo,omitempty"`
+	DataType      string                 `protobuf:"bytes,2,opt,name=dataType,proto3" json:"dataType,omitempty"`
+	Time          string                 `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
+	Data          []byte                 `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -254,13 +253,6 @@ func (*SaveDataRequest) Descriptor() ([]byte, []int) {
 	return file_proto_server_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *SaveDataRequest) GetStorageID() string {
-	if x != nil {
-		return x.StorageID
-	}
-	return ""
-}
-
 func (x *SaveDataRequest) GetMetainfo() string {
 	if x != nil {
 		return x.Metainfo
@@ -291,6 +283,7 @@ func (x *SaveDataRequest) GetData() []byte {
 
 type SaveDataResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	StorageID     string                 `protobuf:"bytes,1,opt,name=storageID,proto3" json:"storageID,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -325,6 +318,273 @@ func (*SaveDataResponse) Descriptor() ([]byte, []int) {
 	return file_proto_server_proto_rawDescGZIP(), []int{5}
 }
 
+func (x *SaveDataResponse) GetStorageID() string {
+	if x != nil {
+		return x.StorageID
+	}
+	return ""
+}
+
+type GiveDataRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	StorageID     string                 `protobuf:"bytes,1,opt,name=storageID,proto3" json:"storageID,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GiveDataRequest) Reset() {
+	*x = GiveDataRequest{}
+	mi := &file_proto_server_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GiveDataRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GiveDataRequest) ProtoMessage() {}
+
+func (x *GiveDataRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_server_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GiveDataRequest.ProtoReflect.Descriptor instead.
+func (*GiveDataRequest) Descriptor() ([]byte, []int) {
+	return file_proto_server_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *GiveDataRequest) GetStorageID() string {
+	if x != nil {
+		return x.StorageID
+	}
+	return ""
+}
+
+type GiveDataResponce struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Metainfo      string                 `protobuf:"bytes,1,opt,name=metainfo,proto3" json:"metainfo,omitempty"`
+	DataType      string                 `protobuf:"bytes,2,opt,name=dataType,proto3" json:"dataType,omitempty"`
+	Time          string                 `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
+	Data          []byte                 `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GiveDataResponce) Reset() {
+	*x = GiveDataResponce{}
+	mi := &file_proto_server_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GiveDataResponce) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GiveDataResponce) ProtoMessage() {}
+
+func (x *GiveDataResponce) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_server_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GiveDataResponce.ProtoReflect.Descriptor instead.
+func (*GiveDataResponce) Descriptor() ([]byte, []int) {
+	return file_proto_server_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *GiveDataResponce) GetMetainfo() string {
+	if x != nil {
+		return x.Metainfo
+	}
+	return ""
+}
+
+func (x *GiveDataResponce) GetDataType() string {
+	if x != nil {
+		return x.DataType
+	}
+	return ""
+}
+
+func (x *GiveDataResponce) GetTime() string {
+	if x != nil {
+		return x.Time
+	}
+	return ""
+}
+
+func (x *GiveDataResponce) GetData() []byte {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+type GiveDataListRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GiveDataListRequest) Reset() {
+	*x = GiveDataListRequest{}
+	mi := &file_proto_server_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GiveDataListRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GiveDataListRequest) ProtoMessage() {}
+
+func (x *GiveDataListRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_server_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GiveDataListRequest.ProtoReflect.Descriptor instead.
+func (*GiveDataListRequest) Descriptor() ([]byte, []int) {
+	return file_proto_server_proto_rawDescGZIP(), []int{8}
+}
+
+type GiveDataListResponce struct {
+	state         protoimpl.MessageState           `protogen:"open.v1"`
+	DataList      []*GiveDataListResponce_DataList `protobuf:"bytes,1,rep,name=dataList,proto3" json:"dataList,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GiveDataListResponce) Reset() {
+	*x = GiveDataListResponce{}
+	mi := &file_proto_server_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GiveDataListResponce) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GiveDataListResponce) ProtoMessage() {}
+
+func (x *GiveDataListResponce) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_server_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GiveDataListResponce.ProtoReflect.Descriptor instead.
+func (*GiveDataListResponce) Descriptor() ([]byte, []int) {
+	return file_proto_server_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GiveDataListResponce) GetDataList() []*GiveDataListResponce_DataList {
+	if x != nil {
+		return x.DataList
+	}
+	return nil
+}
+
+type GiveDataListResponce_DataList struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	StorageID     string                 `protobuf:"bytes,1,opt,name=storageID,proto3" json:"storageID,omitempty"`
+	Metainfo      string                 `protobuf:"bytes,2,opt,name=metainfo,proto3" json:"metainfo,omitempty"`
+	DataType      string                 `protobuf:"bytes,3,opt,name=dataType,proto3" json:"dataType,omitempty"`
+	Time          string                 `protobuf:"bytes,4,opt,name=time,proto3" json:"time,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GiveDataListResponce_DataList) Reset() {
+	*x = GiveDataListResponce_DataList{}
+	mi := &file_proto_server_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GiveDataListResponce_DataList) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GiveDataListResponce_DataList) ProtoMessage() {}
+
+func (x *GiveDataListResponce_DataList) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_server_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GiveDataListResponce_DataList.ProtoReflect.Descriptor instead.
+func (*GiveDataListResponce_DataList) Descriptor() ([]byte, []int) {
+	return file_proto_server_proto_rawDescGZIP(), []int{9, 0}
+}
+
+func (x *GiveDataListResponce_DataList) GetStorageID() string {
+	if x != nil {
+		return x.StorageID
+	}
+	return ""
+}
+
+func (x *GiveDataListResponce_DataList) GetMetainfo() string {
+	if x != nil {
+		return x.Metainfo
+	}
+	return ""
+}
+
+func (x *GiveDataListResponce_DataList) GetDataType() string {
+	if x != nil {
+		return x.DataType
+	}
+	return ""
+}
+
+func (x *GiveDataListResponce_DataList) GetTime() string {
+	if x != nil {
+		return x.Time
+	}
+	return ""
+}
+
 var File_proto_server_proto protoreflect.FileDescriptor
 
 const file_proto_server_proto_rawDesc = "" +
@@ -339,18 +599,35 @@ const file_proto_server_proto_rawDesc = "" +
 	"\tUserLogin\x18\x01 \x01(\tR\tUserLogin\x12\"\n" +
 	"\fUserPassword\x18\x02 \x01(\tR\fUserPassword\"'\n" +
 	"\rLoginResponce\x12\x16\n" +
-	"\x06UserID\x18\x01 \x01(\tR\x06UserID\"\x8f\x01\n" +
-	"\x0fSaveDataRequest\x12\x1c\n" +
+	"\x06UserID\x18\x01 \x01(\tR\x06UserID\"q\n" +
+	"\x0fSaveDataRequest\x12\x1a\n" +
+	"\bmetainfo\x18\x01 \x01(\tR\bmetainfo\x12\x1a\n" +
+	"\bdataType\x18\x02 \x01(\tR\bdataType\x12\x12\n" +
+	"\x04time\x18\x03 \x01(\tR\x04time\x12\x12\n" +
+	"\x04data\x18\x04 \x01(\fR\x04data\"0\n" +
+	"\x10SaveDataResponse\x12\x1c\n" +
+	"\tstorageID\x18\x01 \x01(\tR\tstorageID\"/\n" +
+	"\x0fGiveDataRequest\x12\x1c\n" +
+	"\tstorageID\x18\x01 \x01(\tR\tstorageID\"r\n" +
+	"\x10GiveDataResponce\x12\x1a\n" +
+	"\bmetainfo\x18\x01 \x01(\tR\bmetainfo\x12\x1a\n" +
+	"\bdataType\x18\x02 \x01(\tR\bdataType\x12\x12\n" +
+	"\x04time\x18\x03 \x01(\tR\x04time\x12\x12\n" +
+	"\x04data\x18\x04 \x01(\fR\x04data\"\x15\n" +
+	"\x13GiveDataListRequest\"\xcf\x01\n" +
+	"\x14GiveDataListResponce\x12A\n" +
+	"\bdataList\x18\x01 \x03(\v2%.server.GiveDataListResponce.DataListR\bdataList\x1at\n" +
+	"\bDataList\x12\x1c\n" +
 	"\tstorageID\x18\x01 \x01(\tR\tstorageID\x12\x1a\n" +
 	"\bmetainfo\x18\x02 \x01(\tR\bmetainfo\x12\x1a\n" +
 	"\bdataType\x18\x03 \x01(\tR\bdataType\x12\x12\n" +
-	"\x04time\x18\x04 \x01(\tR\x04time\x12\x12\n" +
-	"\x04data\x18\x05 \x01(\fR\x04data\"\x12\n" +
-	"\x10SaveDataResponse2\xc4\x01\n" +
+	"\x04time\x18\x04 \x01(\tR\x04time2\xce\x02\n" +
 	"\x06Keeper\x12A\n" +
 	"\fRegisterUser\x12\x17.server.RegisterRequest\x1a\x18.server.RegisterResponce\x128\n" +
 	"\tLoginuser\x12\x14.server.LoginRequest\x1a\x15.server.LoginResponce\x12=\n" +
-	"\bSaveData\x12\x17.server.SaveDataRequest\x1a\x18.server.SaveDataResponseB\x0eZ\fserver/protob\x06proto3"
+	"\bSaveData\x12\x17.server.SaveDataRequest\x1a\x18.server.SaveDataResponse\x12=\n" +
+	"\bGiveData\x12\x17.server.GiveDataRequest\x1a\x18.server.GiveDataResponce\x12I\n" +
+	"\fGiveDataList\x12\x1b.server.GiveDataListRequest\x1a\x1c.server.GiveDataListResponceB\x0eZ\fserver/protob\x06proto3"
 
 var (
 	file_proto_server_proto_rawDescOnce sync.Once
@@ -364,27 +641,37 @@ func file_proto_server_proto_rawDescGZIP() []byte {
 	return file_proto_server_proto_rawDescData
 }
 
-var file_proto_server_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_proto_server_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_proto_server_proto_goTypes = []any{
-	(*RegisterRequest)(nil),  // 0: server.RegisterRequest
-	(*RegisterResponce)(nil), // 1: server.RegisterResponce
-	(*LoginRequest)(nil),     // 2: server.LoginRequest
-	(*LoginResponce)(nil),    // 3: server.LoginResponce
-	(*SaveDataRequest)(nil),  // 4: server.SaveDataRequest
-	(*SaveDataResponse)(nil), // 5: server.SaveDataResponse
+	(*RegisterRequest)(nil),               // 0: server.RegisterRequest
+	(*RegisterResponce)(nil),              // 1: server.RegisterResponce
+	(*LoginRequest)(nil),                  // 2: server.LoginRequest
+	(*LoginResponce)(nil),                 // 3: server.LoginResponce
+	(*SaveDataRequest)(nil),               // 4: server.SaveDataRequest
+	(*SaveDataResponse)(nil),              // 5: server.SaveDataResponse
+	(*GiveDataRequest)(nil),               // 6: server.GiveDataRequest
+	(*GiveDataResponce)(nil),              // 7: server.GiveDataResponce
+	(*GiveDataListRequest)(nil),           // 8: server.GiveDataListRequest
+	(*GiveDataListResponce)(nil),          // 9: server.GiveDataListResponce
+	(*GiveDataListResponce_DataList)(nil), // 10: server.GiveDataListResponce.DataList
 }
 var file_proto_server_proto_depIdxs = []int32{
-	0, // 0: server.Keeper.RegisterUser:input_type -> server.RegisterRequest
-	2, // 1: server.Keeper.Loginuser:input_type -> server.LoginRequest
-	4, // 2: server.Keeper.SaveData:input_type -> server.SaveDataRequest
-	1, // 3: server.Keeper.RegisterUser:output_type -> server.RegisterResponce
-	3, // 4: server.Keeper.Loginuser:output_type -> server.LoginResponce
-	5, // 5: server.Keeper.SaveData:output_type -> server.SaveDataResponse
-	3, // [3:6] is the sub-list for method output_type
-	0, // [0:3] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	10, // 0: server.GiveDataListResponce.dataList:type_name -> server.GiveDataListResponce.DataList
+	0,  // 1: server.Keeper.RegisterUser:input_type -> server.RegisterRequest
+	2,  // 2: server.Keeper.Loginuser:input_type -> server.LoginRequest
+	4,  // 3: server.Keeper.SaveData:input_type -> server.SaveDataRequest
+	6,  // 4: server.Keeper.GiveData:input_type -> server.GiveDataRequest
+	8,  // 5: server.Keeper.GiveDataList:input_type -> server.GiveDataListRequest
+	1,  // 6: server.Keeper.RegisterUser:output_type -> server.RegisterResponce
+	3,  // 7: server.Keeper.Loginuser:output_type -> server.LoginResponce
+	5,  // 8: server.Keeper.SaveData:output_type -> server.SaveDataResponse
+	7,  // 9: server.Keeper.GiveData:output_type -> server.GiveDataResponce
+	9,  // 10: server.Keeper.GiveDataList:output_type -> server.GiveDataListResponce
+	6,  // [6:11] is the sub-list for method output_type
+	1,  // [1:6] is the sub-list for method input_type
+	1,  // [1:1] is the sub-list for extension type_name
+	1,  // [1:1] is the sub-list for extension extendee
+	0,  // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_proto_server_proto_init() }
@@ -398,7 +685,7 @@ func file_proto_server_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_server_proto_rawDesc), len(file_proto_server_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

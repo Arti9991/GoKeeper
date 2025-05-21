@@ -17,11 +17,12 @@ var (
 	QuerryCreateType = `CREATE TYPE types AS ENUM('BINARY','CARD','TEXT', 'AUTH');`
 	QuerryCreateData = `CREATE TABLE IF NOT EXISTS datainfo (
 		id SERIAL PRIMARY KEY,
-		user_id VARCHAR(16),
-		storage_id VARCHAR(32) NOT NULL UNIQUE,
+		user_id VARCHAR(16) NOT NULL,
+		storage_id VARCHAR(64) NOT NULL,
 		meta_info TEXT,
 		data_type types,
-		saved_time TIMESTAMP
+		saved_time TIMESTAMP,
+		UNIQUE (user_id, storage_id)
 		);`
 	QuerrySaveDataInfo = `INSERT INTO datainfo
 	(id, user_id, storage_id, meta_info, data_type, saved_time)
@@ -33,6 +34,10 @@ var (
 	QuerryUpdateDataInfo = `UPDATE datainfo
 	SET meta_info = $3, data_type = $4, saved_time = $5
   	WHERE storage_id = $1 AND user_id = $2`
+	QuerryGetDataInfo = `SELECT meta_info, data_type, saved_time FROM  datainfo
+	WHERE storage_id = $1 AND user_id = $2`
+	QuerryGetDataList = `SELECT storage_id, meta_info, data_type, saved_time FROM  datainfo
+	WHERE user_id = $1`
 
 //		QuerryUpdateDataInfo = `WITH updated AS (
 //	    UPDATE datainfo
@@ -119,7 +124,8 @@ func (db *DBStor) SaveNewData(userID string, DataInf servermodels.SaveDataInfo) 
 				logger.Log.Error("Error in getting saved time form datainfo Db", zap.Error(err))
 				return outData, err
 			}
-			if BaseTime.After(DataInf.SaveTime) {
+
+			if BaseTime.Before(DataInf.SaveTime) {
 				row := db.DB.QueryRow(QuerryGetServDataInfo, DataInf.StorageID, userID)
 				err = row.Scan(&outData.MetaInfo, &outData.Type)
 				if err != nil {
@@ -143,5 +149,43 @@ func (db *DBStor) SaveNewData(userID string, DataInf servermodels.SaveDataInfo) 
 			return outData, err
 		}
 	}
+	return outData, nil
+}
+
+func (db *DBStor) GetData(userID string, storageID string) (servermodels.SaveDataInfo, error) {
+	var err error
+	var outData servermodels.SaveDataInfo
+
+	row := db.DB.QueryRow(QuerryGetDataInfo, storageID, userID)
+	err = row.Scan(&outData.MetaInfo, &outData.Type, &outData.SaveTime)
+	if err != nil {
+		logger.Log.Error("Error in get data from datainfo Db", zap.Error(err))
+		return outData, err
+	}
+
+	return outData, nil
+}
+
+func (db *DBStor) GetDataList(userID string) ([]servermodels.SaveDataInfo, error) {
+	var err error
+	var outData []servermodels.SaveDataInfo
+
+	rows, err := db.DB.Query(QuerryGetDataList, userID)
+	if err != nil {
+		logger.Log.Error("Error in get rows from datainfo Db", zap.Error(err))
+		return outData, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var dataLine servermodels.SaveDataInfo
+		err = rows.Scan(&dataLine.StorageID, &dataLine.MetaInfo, &dataLine.Type, &dataLine.SaveTime)
+		if err != nil {
+			logger.Log.Error("Error in get data from datainfo Db", zap.Error(err))
+			return outData, err
+		}
+		outData = append(outData, dataLine)
+	}
+
 	return outData, nil
 }

@@ -27,14 +27,14 @@ func NewBinStor() *BinStor {
 	return &BinStor{MainStor: MainSt}
 }
 
-func (s *BinStor) SaveBinData(storageID string, binData []byte) error {
+func (s *BinStor) SaveBinData(userID string, storageID string, binData []byte) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	s.MainStor[storageID] = binData
 
 	// Также сохраняем данные на диск
-	err := os.WriteFile(StorageDir+storageID, binData, 0644)
+	err := os.WriteFile(StorageDir+userID+"_"+storageID, binData, 0644)
 	if err != nil {
 		logger.Log.Error("Error in saving file", zap.Error(err))
 	}

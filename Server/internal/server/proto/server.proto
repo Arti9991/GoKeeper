@@ -25,18 +25,43 @@ message LoginResponce {
 }
 
 message SaveDataRequest {
-  string storageID = 1;
-  string metainfo = 2;
-  string dataType = 3;
-  string time = 4;
-  bytes data = 5; 
+  string metainfo = 1;
+  string dataType = 2;
+  string time = 3;
+  bytes data = 4; 
 }
 
 message SaveDataResponse {
+    string storageID = 1;
 }
 
+message GiveDataRequest {
+  string storageID = 1;
+}
+
+message GiveDataResponce {
+  string metainfo = 1;
+  string dataType = 2;
+  string time = 3;
+  bytes data = 4; 
+}
+
+message GiveDataListRequest {
+}
+
+message GiveDataListResponce {
+  message DataList {
+    string storageID = 1;
+    string metainfo = 2;
+    string dataType = 3;
+    string time = 4;
+  }
+  repeated DataList dataList = 1;
+}
 service Keeper {
   rpc RegisterUser(RegisterRequest) returns (RegisterResponce);
   rpc Loginuser(LoginRequest) returns (LoginResponce);
   rpc SaveData(SaveDataRequest) returns (SaveDataResponse);
+  rpc GiveData(GiveDataRequest) returns (GiveDataResponce);
+  rpc GiveDataList(GiveDataListRequest) returns (GiveDataListResponce);
 }

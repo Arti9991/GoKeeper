@@ -40,15 +40,7 @@ func BaseTestKeeper(c pb.KeeperClient) {
 	// md := metadata.New(map[string]string{"UserID": "8c537969b84ad4eb0a73e29b3f2a9030"})
 	ctx := context.Background()
 
-	respReg, err := c.Loginuser(ctx, &pb.LoginRequest{
-		UserLogin:    "TestUser",
-		UserPassword: "123456",
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// respReg, err := c.RegisterUser(ctx, &pb.RegisterRequest{
+	// respReg, err := c.Loginuser(ctx, &pb.LoginRequest{
 	// 	UserLogin:    "TestUser",
 	// 	UserPassword: "123456",
 	// })
@@ -56,20 +48,46 @@ func BaseTestKeeper(c pb.KeeperClient) {
 	// 	log.Fatal(err)
 	// }
 
+	respReg, err := c.RegisterUser(ctx, &pb.RegisterRequest{
+		UserLogin:    "TestUserSECOND",
+		UserPassword: "123456789",
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	fmt.Println(respReg.UserID)
 	var header metadata.MD
 	md := metadata.New(map[string]string{"UserID": respReg.UserID})
 	ctx2 := metadata.NewOutgoingContext(context.Background(), md)
 
-	CurrTime := time.Now().Format(time.RFC3339)
-	_, err = c.SaveData(ctx2, &pb.SaveDataRequest{
-		StorageID: "1",
-		Data:      []byte("Hello string!"),
-		DataType:  "TEXT",
-		Metainfo:  "This is meta info",
-		Time:      CurrTime,
+	CurrTime := time.Now().Format(time.RFC850)
+	savedData, err := c.SaveData(ctx2, &pb.SaveDataRequest{
+		Data:     []byte("Hello there!"),
+		DataType: "TEXT",
+		Metainfo: "second METAINFO",
+		Time:     CurrTime,
 	}, grpc.Header(&header))
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	recievedData, err := c.GiveData(ctx2, &pb.GiveDataRequest{
+		StorageID: savedData.StorageID,
+	}, grpc.Header(&header))
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Printf("Recieved data: Type: %s, MetaInfo: %s, time: %s\n, Data: %s\n",
+		recievedData.DataType,
+		recievedData.Metainfo,
+		recievedData.Time,
+		string(recievedData.Data))
+
+	dataList, err := c.GiveDataList(ctx2, &pb.GiveDataListRequest{}, grpc.Header(&header))
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(dataList)
 }

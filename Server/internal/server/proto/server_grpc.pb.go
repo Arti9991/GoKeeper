@@ -22,6 +22,8 @@ const (
 	Keeper_RegisterUser_FullMethodName = "/server.Keeper/RegisterUser"
 	Keeper_Loginuser_FullMethodName    = "/server.Keeper/Loginuser"
 	Keeper_SaveData_FullMethodName     = "/server.Keeper/SaveData"
+	Keeper_GiveData_FullMethodName     = "/server.Keeper/GiveData"
+	Keeper_GiveDataList_FullMethodName = "/server.Keeper/GiveDataList"
 )
 
 // KeeperClient is the client API for Keeper service.
@@ -31,6 +33,8 @@ type KeeperClient interface {
 	RegisterUser(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponce, error)
 	Loginuser(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponce, error)
 	SaveData(ctx context.Context, in *SaveDataRequest, opts ...grpc.CallOption) (*SaveDataResponse, error)
+	GiveData(ctx context.Context, in *GiveDataRequest, opts ...grpc.CallOption) (*GiveDataResponce, error)
+	GiveDataList(ctx context.Context, in *GiveDataListRequest, opts ...grpc.CallOption) (*GiveDataListResponce, error)
 }
 
 type keeperClient struct {
@@ -71,6 +75,26 @@ func (c *keeperClient) SaveData(ctx context.Context, in *SaveDataRequest, opts .
 	return out, nil
 }
 
+func (c *keeperClient) GiveData(ctx context.Context, in *GiveDataRequest, opts ...grpc.CallOption) (*GiveDataResponce, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GiveDataResponce)
+	err := c.cc.Invoke(ctx, Keeper_GiveData_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *keeperClient) GiveDataList(ctx context.Context, in *GiveDataListRequest, opts ...grpc.CallOption) (*GiveDataListResponce, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GiveDataListResponce)
+	err := c.cc.Invoke(ctx, Keeper_GiveDataList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // KeeperServer is the server API for Keeper service.
 // All implementations must embed UnimplementedKeeperServer
 // for forward compatibility.
@@ -78,6 +102,8 @@ type KeeperServer interface {
 	RegisterUser(context.Context, *RegisterRequest) (*RegisterResponce, error)
 	Loginuser(context.Context, *LoginRequest) (*LoginResponce, error)
 	SaveData(context.Context, *SaveDataRequest) (*SaveDataResponse, error)
+	GiveData(context.Context, *GiveDataRequest) (*GiveDataResponce, error)
+	GiveDataList(context.Context, *GiveDataListRequest) (*GiveDataListResponce, error)
 	mustEmbedUnimplementedKeeperServer()
 }
 
@@ -96,6 +122,12 @@ func (UnimplementedKeeperServer) Loginuser(context.Context, *LoginRequest) (*Log
 }
 func (UnimplementedKeeperServer) SaveData(context.Context, *SaveDataRequest) (*SaveDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SaveData not implemented")
+}
+func (UnimplementedKeeperServer) GiveData(context.Context, *GiveDataRequest) (*GiveDataResponce, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GiveData not implemented")
+}
+func (UnimplementedKeeperServer) GiveDataList(context.Context, *GiveDataListRequest) (*GiveDataListResponce, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GiveDataList not implemented")
 }
 func (UnimplementedKeeperServer) mustEmbedUnimplementedKeeperServer() {}
 func (UnimplementedKeeperServer) testEmbeddedByValue()                {}
@@ -172,6 +204,42 @@ func _Keeper_SaveData_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Keeper_GiveData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GiveDataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KeeperServer).GiveData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Keeper_GiveData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KeeperServer).GiveData(ctx, req.(*GiveDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Keeper_GiveDataList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GiveDataListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KeeperServer).GiveDataList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Keeper_GiveDataList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KeeperServer).GiveDataList(ctx, req.(*GiveDataListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Keeper_ServiceDesc is the grpc.ServiceDesc for Keeper service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -190,6 +258,14 @@ var Keeper_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SaveData",
 			Handler:    _Keeper_SaveData_Handler,
+		},
+		{
+			MethodName: "GiveData",
+			Handler:    _Keeper_GiveData_Handler,
+		},
+		{
+			MethodName: "GiveDataList",
+			Handler:    _Keeper_GiveDataList_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

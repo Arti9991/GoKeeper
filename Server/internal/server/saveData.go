@@ -2,7 +2,8 @@ package server
 
 import (
 	"context"
-	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"time"
 
@@ -25,14 +26,18 @@ func (s *Server) SaveData(ctx context.Context, in *pb.SaveDataRequest) (*pb.Save
 		return &res, status.Errorf(codes.Aborted, `Пользователь не авторизован`)
 	}
 
-	StorageID := rand.Text()
+	hashData := sha256.Sum256(in.Data)
+	StorageID := hex.EncodeToString(hashData[:])
+
+	fmt.Println(StorageID)
+	fmt.Println(len(StorageID))
 
 	var SaveDataInfo servermodels.SaveDataInfo
 	SaveDataInfo.Data = in.Data
 	SaveDataInfo.StorageID = StorageID
 	SaveDataInfo.Type = in.DataType
 	SaveDataInfo.MetaInfo = in.Metainfo
-	SaveDataInfo.SaveTime, err = time.Parse(time.RFC3339, in.Time)
+	SaveDataInfo.SaveTime, err = time.Parse(time.RFC850, in.Time)
 	if err != nil {
 		logger.Log.Error("Error in parse time from request setting own time", zap.Error(err))
 		SaveDataInfo.SaveTime = time.Now()
@@ -48,11 +53,12 @@ func (s *Server) SaveData(ctx context.Context, in *pb.SaveDataRequest) (*pb.Save
 		}
 	}
 
-	s.BinStor.SaveBinData(StorageID, SaveDataInfo.Data)
+	s.BinStor.SaveBinData(UserInfo.UserID, StorageID, SaveDataInfo.Data)
 
 	fmt.Println(UserInfo.UserID)
-	fmt.Println("Input ID", in.StorageID)
 	fmt.Println("Input Data", in.Metainfo)
+
+	res.StorageID = StorageID
 
 	return &res, nil
 }

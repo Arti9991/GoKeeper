@@ -1,0 +1,42 @@
+package server
+
+import (
+	"context"
+	"time"
+
+	"github.com/Arti9991/GoKeeper/server/internal/logger"
+	"github.com/Arti9991/GoKeeper/server/internal/server/interceptors"
+	pb "github.com/Arti9991/GoKeeper/server/internal/server/proto"
+	"github.com/Arti9991/GoKeeper/server/internal/server/servermodels"
+	"go.uber.org/zap"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+)
+
+// GetAddr получение исходного URL по укороченному
+func (s *Server) GiveDataList(ctx context.Context, in *pb.GiveDataListRequest) (*pb.GiveDataListResponce, error) {
+	var res pb.GiveDataListResponce
+	//var err error
+	UserInfo := ctx.Value(interceptors.CtxKey).(servermodels.UserInfo)
+
+	if !UserInfo.Register {
+		return &res, status.Errorf(codes.Aborted, `Пользователь не авторизован`)
+	}
+
+	getData, err := s.DBData.GetDataList(UserInfo.UserID)
+	if err != nil {
+		logger.Log.Error("Error in get datainfo from DB", zap.Error(err))
+		return &res, status.Error(codes.Aborted, `Ошибка в получении информации о данных`)
+	}
+
+	for _, dataLine := range getData {
+		var resLine pb.GiveDataListResponce_DataList
+		resLine.StorageID = dataLine.StorageID
+		resLine.DataType = dataLine.Type
+		resLine.Metainfo = dataLine.MetaInfo
+		resLine.Time = dataLine.SaveTime.Format(time.RFC850)
+		res.DataList = append(res.DataList, &resLine)
+	}
+
+	return &res, nil
+}
