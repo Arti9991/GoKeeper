@@ -17,12 +17,13 @@ import (
 
 type Server struct {
 	// структура с инфомрацией о сервере
-	DBusers  *pgstor.DBUsersStor
-	UserStor pgstor.UserStor
-	DBData   *pgstor.DBStor
-	InfoStor pgstor.InfoStorage
-	BinStor  *binstor.BinStor
-	Config   config.Config
+	DBusers     *pgstor.DBUsersStor
+	UserStor    pgstor.UserStor
+	DBData      *pgstor.DBStor
+	InfoStor    pgstor.InfoStorage
+	BinStor     *binstor.BinStor
+	BinStorFunc binstor.BinStrorFunc
+	Config      config.Config
 	proto.UnimplementedKeeperServer
 }
 
@@ -49,10 +50,10 @@ func InitServer() *Server {
 		logger.Log.Error("Error in creating data DB", zap.Error(err))
 		return Serv
 	}
+	Serv.InfoStor = Serv.DBData
 
 	Serv.BinStor = binstor.NewBinStor()
-
-	Serv.InfoStor = Serv.DBData
+	Serv.BinStorFunc = Serv.BinStor
 
 	return Serv
 }

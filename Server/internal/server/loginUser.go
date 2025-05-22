@@ -36,12 +36,14 @@ func (s *Server) Loginuser(ctx context.Context, in *pb.LoginRequest) (*pb.LoginR
 
 	UserID, basePassw, err := s.UserStor.GetUser(in.UserLogin)
 	if err == servermodels.ErrorNoSuchUser {
+		logger.Log.Error("No such user", zap.Error(err))
 		return &res, status.Error(codes.PermissionDenied, `Неверное имя пользователя или пароль`)
 	} else if err != nil {
 		logger.Log.Error("Error in get user from users DB", zap.Error(err))
 		return &res, status.Error(codes.Unavailable, `Ошибка в получении пользователя`)
 	}
 	if basePassw != codedPassw {
+		logger.Log.Error("Bad password", zap.Error(err))
 		return &res, status.Error(codes.PermissionDenied, `Неверное имя пользователя или пароль`)
 	}
 

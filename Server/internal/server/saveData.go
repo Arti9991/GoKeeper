@@ -47,13 +47,27 @@ func (s *Server) SaveData(ctx context.Context, in *pb.SaveDataRequest) (*pb.Save
 	if err != nil {
 		if err == servermodels.ErrNewerData {
 			fmt.Println(getData)
-			SaveDataInfo.StorageID = getData.StorageID
+			res.IsOutdated = true
+			res.ReverseData.Data, err = s.BinStorFunc.GetBinData(UserInfo.UserID, getData.StorageID)
+			if err != nil {
+				logger.Log.Error("Error in getting newer binary data", zap.Error(err))
+				return &res, status.Error(codes.Aborted, `Ошибка в получении обновленных бинарных данных`)
+			}
+			res.ReverseData.DataType = getData.Type
+			res.ReverseData.Metainfo = getData.MetaInfo
+			res.ReverseData.Time = getData.SaveTime.Format(time.RFC850)
+			return &res, nil
 		} else {
 			return &res, status.Error(codes.Aborted, `Ошибка в сохранении информации о данных`)
 		}
 	}
 
-	s.BinStor.SaveBinData(UserInfo.UserID, StorageID, SaveDataInfo.Data)
+	res.IsOutdated = false
+	err = s.BinStorFunc.SaveBinData(UserInfo.UserID, StorageID, SaveDataInfo.Data)
+	if err != nil {
+		logger.Log.Error("Error in saving binary data", zap.Error(err))
+		return &res, status.Error(codes.Aborted, `Ошибка в сохранении бинарных данных`)
+	}
 
 	fmt.Println(UserInfo.UserID)
 	fmt.Println("Input Data", in.Metainfo)

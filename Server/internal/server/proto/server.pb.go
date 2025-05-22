@@ -282,8 +282,10 @@ func (x *SaveDataRequest) GetData() []byte {
 }
 
 type SaveDataResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	StorageID     string                 `protobuf:"bytes,1,opt,name=storageID,proto3" json:"storageID,omitempty"`
+	state         protoimpl.MessageState        `protogen:"open.v1"`
+	StorageID     string                        `protobuf:"bytes,1,opt,name=storageID,proto3" json:"storageID,omitempty"`
+	IsOutdated    bool                          `protobuf:"varint,2,opt,name=isOutdated,proto3" json:"isOutdated,omitempty"`
+	ReverseData   *SaveDataResponse_ReverseData `protobuf:"bytes,3,opt,name=reverseData,proto3" json:"reverseData,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -325,6 +327,132 @@ func (x *SaveDataResponse) GetStorageID() string {
 	return ""
 }
 
+func (x *SaveDataResponse) GetIsOutdated() bool {
+	if x != nil {
+		return x.IsOutdated
+	}
+	return false
+}
+
+func (x *SaveDataResponse) GetReverseData() *SaveDataResponse_ReverseData {
+	if x != nil {
+		return x.ReverseData
+	}
+	return nil
+}
+
+type UpdateDataRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	StorageID     string                 `protobuf:"bytes,1,opt,name=storageID,proto3" json:"storageID,omitempty"`
+	Metainfo      string                 `protobuf:"bytes,2,opt,name=metainfo,proto3" json:"metainfo,omitempty"`
+	DataType      string                 `protobuf:"bytes,3,opt,name=dataType,proto3" json:"dataType,omitempty"`
+	Time          string                 `protobuf:"bytes,4,opt,name=time,proto3" json:"time,omitempty"`
+	Data          []byte                 `protobuf:"bytes,5,opt,name=data,proto3" json:"data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateDataRequest) Reset() {
+	*x = UpdateDataRequest{}
+	mi := &file_proto_server_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateDataRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateDataRequest) ProtoMessage() {}
+
+func (x *UpdateDataRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_server_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateDataRequest.ProtoReflect.Descriptor instead.
+func (*UpdateDataRequest) Descriptor() ([]byte, []int) {
+	return file_proto_server_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *UpdateDataRequest) GetStorageID() string {
+	if x != nil {
+		return x.StorageID
+	}
+	return ""
+}
+
+func (x *UpdateDataRequest) GetMetainfo() string {
+	if x != nil {
+		return x.Metainfo
+	}
+	return ""
+}
+
+func (x *UpdateDataRequest) GetDataType() string {
+	if x != nil {
+		return x.DataType
+	}
+	return ""
+}
+
+func (x *UpdateDataRequest) GetTime() string {
+	if x != nil {
+		return x.Time
+	}
+	return ""
+}
+
+func (x *UpdateDataRequest) GetData() []byte {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+type UpdateDataResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateDataResponse) Reset() {
+	*x = UpdateDataResponse{}
+	mi := &file_proto_server_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateDataResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateDataResponse) ProtoMessage() {}
+
+func (x *UpdateDataResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_server_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateDataResponse.ProtoReflect.Descriptor instead.
+func (*UpdateDataResponse) Descriptor() ([]byte, []int) {
+	return file_proto_server_proto_rawDescGZIP(), []int{7}
+}
+
 type GiveDataRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	StorageID     string                 `protobuf:"bytes,1,opt,name=storageID,proto3" json:"storageID,omitempty"`
@@ -334,7 +462,7 @@ type GiveDataRequest struct {
 
 func (x *GiveDataRequest) Reset() {
 	*x = GiveDataRequest{}
-	mi := &file_proto_server_proto_msgTypes[6]
+	mi := &file_proto_server_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -346,7 +474,7 @@ func (x *GiveDataRequest) String() string {
 func (*GiveDataRequest) ProtoMessage() {}
 
 func (x *GiveDataRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_server_proto_msgTypes[6]
+	mi := &file_proto_server_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -359,7 +487,7 @@ func (x *GiveDataRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GiveDataRequest.ProtoReflect.Descriptor instead.
 func (*GiveDataRequest) Descriptor() ([]byte, []int) {
-	return file_proto_server_proto_rawDescGZIP(), []int{6}
+	return file_proto_server_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GiveDataRequest) GetStorageID() string {
@@ -381,7 +509,7 @@ type GiveDataResponce struct {
 
 func (x *GiveDataResponce) Reset() {
 	*x = GiveDataResponce{}
-	mi := &file_proto_server_proto_msgTypes[7]
+	mi := &file_proto_server_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -393,7 +521,7 @@ func (x *GiveDataResponce) String() string {
 func (*GiveDataResponce) ProtoMessage() {}
 
 func (x *GiveDataResponce) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_server_proto_msgTypes[7]
+	mi := &file_proto_server_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -406,7 +534,7 @@ func (x *GiveDataResponce) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GiveDataResponce.ProtoReflect.Descriptor instead.
 func (*GiveDataResponce) Descriptor() ([]byte, []int) {
-	return file_proto_server_proto_rawDescGZIP(), []int{7}
+	return file_proto_server_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *GiveDataResponce) GetMetainfo() string {
@@ -445,7 +573,7 @@ type GiveDataListRequest struct {
 
 func (x *GiveDataListRequest) Reset() {
 	*x = GiveDataListRequest{}
-	mi := &file_proto_server_proto_msgTypes[8]
+	mi := &file_proto_server_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -457,7 +585,7 @@ func (x *GiveDataListRequest) String() string {
 func (*GiveDataListRequest) ProtoMessage() {}
 
 func (x *GiveDataListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_server_proto_msgTypes[8]
+	mi := &file_proto_server_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -470,7 +598,7 @@ func (x *GiveDataListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GiveDataListRequest.ProtoReflect.Descriptor instead.
 func (*GiveDataListRequest) Descriptor() ([]byte, []int) {
-	return file_proto_server_proto_rawDescGZIP(), []int{8}
+	return file_proto_server_proto_rawDescGZIP(), []int{10}
 }
 
 type GiveDataListResponce struct {
@@ -482,7 +610,7 @@ type GiveDataListResponce struct {
 
 func (x *GiveDataListResponce) Reset() {
 	*x = GiveDataListResponce{}
-	mi := &file_proto_server_proto_msgTypes[9]
+	mi := &file_proto_server_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -494,7 +622,7 @@ func (x *GiveDataListResponce) String() string {
 func (*GiveDataListResponce) ProtoMessage() {}
 
 func (x *GiveDataListResponce) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_server_proto_msgTypes[9]
+	mi := &file_proto_server_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -507,12 +635,80 @@ func (x *GiveDataListResponce) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GiveDataListResponce.ProtoReflect.Descriptor instead.
 func (*GiveDataListResponce) Descriptor() ([]byte, []int) {
-	return file_proto_server_proto_rawDescGZIP(), []int{9}
+	return file_proto_server_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *GiveDataListResponce) GetDataList() []*GiveDataListResponce_DataList {
 	if x != nil {
 		return x.DataList
+	}
+	return nil
+}
+
+type SaveDataResponse_ReverseData struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Metainfo      string                 `protobuf:"bytes,1,opt,name=metainfo,proto3" json:"metainfo,omitempty"`
+	DataType      string                 `protobuf:"bytes,2,opt,name=dataType,proto3" json:"dataType,omitempty"`
+	Time          string                 `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
+	Data          []byte                 `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SaveDataResponse_ReverseData) Reset() {
+	*x = SaveDataResponse_ReverseData{}
+	mi := &file_proto_server_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SaveDataResponse_ReverseData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SaveDataResponse_ReverseData) ProtoMessage() {}
+
+func (x *SaveDataResponse_ReverseData) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_server_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SaveDataResponse_ReverseData.ProtoReflect.Descriptor instead.
+func (*SaveDataResponse_ReverseData) Descriptor() ([]byte, []int) {
+	return file_proto_server_proto_rawDescGZIP(), []int{5, 0}
+}
+
+func (x *SaveDataResponse_ReverseData) GetMetainfo() string {
+	if x != nil {
+		return x.Metainfo
+	}
+	return ""
+}
+
+func (x *SaveDataResponse_ReverseData) GetDataType() string {
+	if x != nil {
+		return x.DataType
+	}
+	return ""
+}
+
+func (x *SaveDataResponse_ReverseData) GetTime() string {
+	if x != nil {
+		return x.Time
+	}
+	return ""
+}
+
+func (x *SaveDataResponse_ReverseData) GetData() []byte {
+	if x != nil {
+		return x.Data
 	}
 	return nil
 }
@@ -529,7 +725,7 @@ type GiveDataListResponce_DataList struct {
 
 func (x *GiveDataListResponce_DataList) Reset() {
 	*x = GiveDataListResponce_DataList{}
-	mi := &file_proto_server_proto_msgTypes[10]
+	mi := &file_proto_server_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -541,7 +737,7 @@ func (x *GiveDataListResponce_DataList) String() string {
 func (*GiveDataListResponce_DataList) ProtoMessage() {}
 
 func (x *GiveDataListResponce_DataList) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_server_proto_msgTypes[10]
+	mi := &file_proto_server_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -554,7 +750,7 @@ func (x *GiveDataListResponce_DataList) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GiveDataListResponce_DataList.ProtoReflect.Descriptor instead.
 func (*GiveDataListResponce_DataList) Descriptor() ([]byte, []int) {
-	return file_proto_server_proto_rawDescGZIP(), []int{9, 0}
+	return file_proto_server_proto_rawDescGZIP(), []int{11, 0}
 }
 
 func (x *GiveDataListResponce_DataList) GetStorageID() string {
@@ -604,9 +800,25 @@ const file_proto_server_proto_rawDesc = "" +
 	"\bmetainfo\x18\x01 \x01(\tR\bmetainfo\x12\x1a\n" +
 	"\bdataType\x18\x02 \x01(\tR\bdataType\x12\x12\n" +
 	"\x04time\x18\x03 \x01(\tR\x04time\x12\x12\n" +
-	"\x04data\x18\x04 \x01(\fR\x04data\"0\n" +
+	"\x04data\x18\x04 \x01(\fR\x04data\"\x87\x02\n" +
 	"\x10SaveDataResponse\x12\x1c\n" +
-	"\tstorageID\x18\x01 \x01(\tR\tstorageID\"/\n" +
+	"\tstorageID\x18\x01 \x01(\tR\tstorageID\x12\x1e\n" +
+	"\n" +
+	"isOutdated\x18\x02 \x01(\bR\n" +
+	"isOutdated\x12F\n" +
+	"\vreverseData\x18\x03 \x01(\v2$.server.SaveDataResponse.ReverseDataR\vreverseData\x1am\n" +
+	"\vReverseData\x12\x1a\n" +
+	"\bmetainfo\x18\x01 \x01(\tR\bmetainfo\x12\x1a\n" +
+	"\bdataType\x18\x02 \x01(\tR\bdataType\x12\x12\n" +
+	"\x04time\x18\x03 \x01(\tR\x04time\x12\x12\n" +
+	"\x04data\x18\x04 \x01(\fR\x04data\"\x91\x01\n" +
+	"\x11UpdateDataRequest\x12\x1c\n" +
+	"\tstorageID\x18\x01 \x01(\tR\tstorageID\x12\x1a\n" +
+	"\bmetainfo\x18\x02 \x01(\tR\bmetainfo\x12\x1a\n" +
+	"\bdataType\x18\x03 \x01(\tR\bdataType\x12\x12\n" +
+	"\x04time\x18\x04 \x01(\tR\x04time\x12\x12\n" +
+	"\x04data\x18\x05 \x01(\fR\x04data\"\x14\n" +
+	"\x12UpdateDataResponse\"/\n" +
 	"\x0fGiveDataRequest\x12\x1c\n" +
 	"\tstorageID\x18\x01 \x01(\tR\tstorageID\"r\n" +
 	"\x10GiveDataResponce\x12\x1a\n" +
@@ -621,11 +833,13 @@ const file_proto_server_proto_rawDesc = "" +
 	"\tstorageID\x18\x01 \x01(\tR\tstorageID\x12\x1a\n" +
 	"\bmetainfo\x18\x02 \x01(\tR\bmetainfo\x12\x1a\n" +
 	"\bdataType\x18\x03 \x01(\tR\bdataType\x12\x12\n" +
-	"\x04time\x18\x04 \x01(\tR\x04time2\xce\x02\n" +
+	"\x04time\x18\x04 \x01(\tR\x04time2\x93\x03\n" +
 	"\x06Keeper\x12A\n" +
 	"\fRegisterUser\x12\x17.server.RegisterRequest\x1a\x18.server.RegisterResponce\x128\n" +
 	"\tLoginuser\x12\x14.server.LoginRequest\x1a\x15.server.LoginResponce\x12=\n" +
-	"\bSaveData\x12\x17.server.SaveDataRequest\x1a\x18.server.SaveDataResponse\x12=\n" +
+	"\bSaveData\x12\x17.server.SaveDataRequest\x1a\x18.server.SaveDataResponse\x12C\n" +
+	"\n" +
+	"UpdateData\x12\x19.server.UpdateDataRequest\x1a\x1a.server.UpdateDataResponse\x12=\n" +
 	"\bGiveData\x12\x17.server.GiveDataRequest\x1a\x18.server.GiveDataResponce\x12I\n" +
 	"\fGiveDataList\x12\x1b.server.GiveDataListRequest\x1a\x1c.server.GiveDataListResponceB\x0eZ\fserver/protob\x06proto3"
 
@@ -641,7 +855,7 @@ func file_proto_server_proto_rawDescGZIP() []byte {
 	return file_proto_server_proto_rawDescData
 }
 
-var file_proto_server_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_proto_server_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_proto_server_proto_goTypes = []any{
 	(*RegisterRequest)(nil),               // 0: server.RegisterRequest
 	(*RegisterResponce)(nil),              // 1: server.RegisterResponce
@@ -649,29 +863,35 @@ var file_proto_server_proto_goTypes = []any{
 	(*LoginResponce)(nil),                 // 3: server.LoginResponce
 	(*SaveDataRequest)(nil),               // 4: server.SaveDataRequest
 	(*SaveDataResponse)(nil),              // 5: server.SaveDataResponse
-	(*GiveDataRequest)(nil),               // 6: server.GiveDataRequest
-	(*GiveDataResponce)(nil),              // 7: server.GiveDataResponce
-	(*GiveDataListRequest)(nil),           // 8: server.GiveDataListRequest
-	(*GiveDataListResponce)(nil),          // 9: server.GiveDataListResponce
-	(*GiveDataListResponce_DataList)(nil), // 10: server.GiveDataListResponce.DataList
+	(*UpdateDataRequest)(nil),             // 6: server.UpdateDataRequest
+	(*UpdateDataResponse)(nil),            // 7: server.UpdateDataResponse
+	(*GiveDataRequest)(nil),               // 8: server.GiveDataRequest
+	(*GiveDataResponce)(nil),              // 9: server.GiveDataResponce
+	(*GiveDataListRequest)(nil),           // 10: server.GiveDataListRequest
+	(*GiveDataListResponce)(nil),          // 11: server.GiveDataListResponce
+	(*SaveDataResponse_ReverseData)(nil),  // 12: server.SaveDataResponse.ReverseData
+	(*GiveDataListResponce_DataList)(nil), // 13: server.GiveDataListResponce.DataList
 }
 var file_proto_server_proto_depIdxs = []int32{
-	10, // 0: server.GiveDataListResponce.dataList:type_name -> server.GiveDataListResponce.DataList
-	0,  // 1: server.Keeper.RegisterUser:input_type -> server.RegisterRequest
-	2,  // 2: server.Keeper.Loginuser:input_type -> server.LoginRequest
-	4,  // 3: server.Keeper.SaveData:input_type -> server.SaveDataRequest
-	6,  // 4: server.Keeper.GiveData:input_type -> server.GiveDataRequest
-	8,  // 5: server.Keeper.GiveDataList:input_type -> server.GiveDataListRequest
-	1,  // 6: server.Keeper.RegisterUser:output_type -> server.RegisterResponce
-	3,  // 7: server.Keeper.Loginuser:output_type -> server.LoginResponce
-	5,  // 8: server.Keeper.SaveData:output_type -> server.SaveDataResponse
-	7,  // 9: server.Keeper.GiveData:output_type -> server.GiveDataResponce
-	9,  // 10: server.Keeper.GiveDataList:output_type -> server.GiveDataListResponce
-	6,  // [6:11] is the sub-list for method output_type
-	1,  // [1:6] is the sub-list for method input_type
-	1,  // [1:1] is the sub-list for extension type_name
-	1,  // [1:1] is the sub-list for extension extendee
-	0,  // [0:1] is the sub-list for field type_name
+	12, // 0: server.SaveDataResponse.reverseData:type_name -> server.SaveDataResponse.ReverseData
+	13, // 1: server.GiveDataListResponce.dataList:type_name -> server.GiveDataListResponce.DataList
+	0,  // 2: server.Keeper.RegisterUser:input_type -> server.RegisterRequest
+	2,  // 3: server.Keeper.Loginuser:input_type -> server.LoginRequest
+	4,  // 4: server.Keeper.SaveData:input_type -> server.SaveDataRequest
+	6,  // 5: server.Keeper.UpdateData:input_type -> server.UpdateDataRequest
+	8,  // 6: server.Keeper.GiveData:input_type -> server.GiveDataRequest
+	10, // 7: server.Keeper.GiveDataList:input_type -> server.GiveDataListRequest
+	1,  // 8: server.Keeper.RegisterUser:output_type -> server.RegisterResponce
+	3,  // 9: server.Keeper.Loginuser:output_type -> server.LoginResponce
+	5,  // 10: server.Keeper.SaveData:output_type -> server.SaveDataResponse
+	7,  // 11: server.Keeper.UpdateData:output_type -> server.UpdateDataResponse
+	9,  // 12: server.Keeper.GiveData:output_type -> server.GiveDataResponce
+	11, // 13: server.Keeper.GiveDataList:output_type -> server.GiveDataListResponce
+	8,  // [8:14] is the sub-list for method output_type
+	2,  // [2:8] is the sub-list for method input_type
+	2,  // [2:2] is the sub-list for extension type_name
+	2,  // [2:2] is the sub-list for extension extendee
+	0,  // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_proto_server_proto_init() }
@@ -685,7 +905,7 @@ func file_proto_server_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_server_proto_rawDesc), len(file_proto_server_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

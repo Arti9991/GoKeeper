@@ -78,3 +78,17 @@ func (mr *MockInfoStorageMockRecorder) SaveNewData(userID, DataInf interface{}) 
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveNewData", reflect.TypeOf((*MockInfoStorage)(nil).SaveNewData), userID, DataInf)
 }
+
+// UpdateData mocks base method.
+func (m *MockInfoStorage) UpdateData(userID string, DataInf servermodels.SaveDataInfo) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateData", userID, DataInf)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateData indicates an expected call of UpdateData.
+func (mr *MockInfoStorageMockRecorder) UpdateData(userID, DataInf interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateData", reflect.TypeOf((*MockInfoStorage)(nil).UpdateData), userID, DataInf)
+}

@@ -12,6 +12,12 @@ var (
 	StorageDir = "D:/Course/Practicum/GoKeeper/Server/storage/"
 )
 
+type BinStrorFunc interface {
+	SaveBinData(userID string, storageID string, binData []byte) error
+	UpdateBinData(userID string, storageID string, binData []byte) error
+	GetBinData(userID string, storageID string) ([]byte, error)
+}
+
 type BinStor struct {
 	MainStor map[string][]byte
 	mu       sync.Mutex
@@ -41,6 +47,20 @@ func (s *BinStor) SaveBinData(userID string, storageID string, binData []byte) e
 	return nil
 }
 
+func (s *BinStor) UpdateBinData(userID string, storageID string, binData []byte) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.MainStor[storageID] = binData
+
+	// Также сохраняем данные на диск
+	err := os.WriteFile(StorageDir+userID+"_"+storageID, binData, 0644)
+	if err != nil {
+		logger.Log.Error("Error in saving file", zap.Error(err))
+	}
+	return nil
+}
+
 func (s *BinStor) GetBinData(userID string, storageID string) ([]byte, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -55,21 +75,5 @@ func (s *BinStor) GetBinData(userID string, storageID string) ([]byte, error) {
 		return out, nil
 	}
 
-	return out, nil
-}
-
-func (s *BinStor) SaveBinDataTest(userID string, storageID string, binData []byte) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.MainStor[storageID] = binData
-	return nil
-}
-
-func (s *BinStor) GetBinDataTest(userID string, storageID string) ([]byte, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	var out []byte
-	out = s.MainStor[storageID]
 	return out, nil
 }

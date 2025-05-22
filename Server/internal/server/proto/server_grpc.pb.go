@@ -22,6 +22,7 @@ const (
 	Keeper_RegisterUser_FullMethodName = "/server.Keeper/RegisterUser"
 	Keeper_Loginuser_FullMethodName    = "/server.Keeper/Loginuser"
 	Keeper_SaveData_FullMethodName     = "/server.Keeper/SaveData"
+	Keeper_UpdateData_FullMethodName   = "/server.Keeper/UpdateData"
 	Keeper_GiveData_FullMethodName     = "/server.Keeper/GiveData"
 	Keeper_GiveDataList_FullMethodName = "/server.Keeper/GiveDataList"
 )
@@ -33,6 +34,7 @@ type KeeperClient interface {
 	RegisterUser(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponce, error)
 	Loginuser(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponce, error)
 	SaveData(ctx context.Context, in *SaveDataRequest, opts ...grpc.CallOption) (*SaveDataResponse, error)
+	UpdateData(ctx context.Context, in *UpdateDataRequest, opts ...grpc.CallOption) (*UpdateDataResponse, error)
 	GiveData(ctx context.Context, in *GiveDataRequest, opts ...grpc.CallOption) (*GiveDataResponce, error)
 	GiveDataList(ctx context.Context, in *GiveDataListRequest, opts ...grpc.CallOption) (*GiveDataListResponce, error)
 }
@@ -75,6 +77,16 @@ func (c *keeperClient) SaveData(ctx context.Context, in *SaveDataRequest, opts .
 	return out, nil
 }
 
+func (c *keeperClient) UpdateData(ctx context.Context, in *UpdateDataRequest, opts ...grpc.CallOption) (*UpdateDataResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateDataResponse)
+	err := c.cc.Invoke(ctx, Keeper_UpdateData_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *keeperClient) GiveData(ctx context.Context, in *GiveDataRequest, opts ...grpc.CallOption) (*GiveDataResponce, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GiveDataResponce)
@@ -102,6 +114,7 @@ type KeeperServer interface {
 	RegisterUser(context.Context, *RegisterRequest) (*RegisterResponce, error)
 	Loginuser(context.Context, *LoginRequest) (*LoginResponce, error)
 	SaveData(context.Context, *SaveDataRequest) (*SaveDataResponse, error)
+	UpdateData(context.Context, *UpdateDataRequest) (*UpdateDataResponse, error)
 	GiveData(context.Context, *GiveDataRequest) (*GiveDataResponce, error)
 	GiveDataList(context.Context, *GiveDataListRequest) (*GiveDataListResponce, error)
 	mustEmbedUnimplementedKeeperServer()
@@ -122,6 +135,9 @@ func (UnimplementedKeeperServer) Loginuser(context.Context, *LoginRequest) (*Log
 }
 func (UnimplementedKeeperServer) SaveData(context.Context, *SaveDataRequest) (*SaveDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SaveData not implemented")
+}
+func (UnimplementedKeeperServer) UpdateData(context.Context, *UpdateDataRequest) (*UpdateDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateData not implemented")
 }
 func (UnimplementedKeeperServer) GiveData(context.Context, *GiveDataRequest) (*GiveDataResponce, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GiveData not implemented")
@@ -204,6 +220,24 @@ func _Keeper_SaveData_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Keeper_UpdateData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateDataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KeeperServer).UpdateData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Keeper_UpdateData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KeeperServer).UpdateData(ctx, req.(*UpdateDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Keeper_GiveData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GiveDataRequest)
 	if err := dec(in); err != nil {
@@ -258,6 +292,10 @@ var Keeper_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SaveData",
 			Handler:    _Keeper_SaveData_Handler,
+		},
+		{
+			MethodName: "UpdateData",
+			Handler:    _Keeper_UpdateData_Handler,
 		},
 		{
 			MethodName: "GiveData",

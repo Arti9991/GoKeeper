@@ -41,8 +41,8 @@ func BaseTestKeeper(c pb.KeeperClient) {
 	ctx := context.Background()
 
 	respReg, err := c.Loginuser(ctx, &pb.LoginRequest{
-		UserLogin:    "TestUser",
-		UserPassword: "123456",
+		UserLogin:    "TestUserSECOND",
+		UserPassword: "123456789",
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -63,9 +63,9 @@ func BaseTestKeeper(c pb.KeeperClient) {
 
 	CurrTime := time.Now().Format(time.RFC850)
 	savedData, err := c.SaveData(ctx2, &pb.SaveDataRequest{
-		Data:     []byte("Hello there! UPDATE Not there... HERE!!!"),
+		Data:     []byte("Hello there!"),
 		DataType: "TEXT",
-		Metainfo: "second METAINFO updated",
+		Metainfo: "METAINFO",
 		Time:     CurrTime,
 	}, grpc.Header(&header))
 	if err != nil {
@@ -84,6 +84,17 @@ func BaseTestKeeper(c pb.KeeperClient) {
 		recievedData.Metainfo,
 		recievedData.Time,
 		string(recievedData.Data))
+
+	_, err = c.UpdateData(ctx2, &pb.UpdateDataRequest{
+		StorageID: savedData.StorageID,
+		Data:      []byte("Hello there! UPDATE Not there... HERE!!!"),
+		DataType:  "TEXT",
+		Metainfo:  "second METAINFO updated",
+		Time:      CurrTime,
+	}, grpc.Header(&header))
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	dataList, err := c.GiveDataList(ctx2, &pb.GiveDataListRequest{}, grpc.Header(&header))
 	if err != nil {

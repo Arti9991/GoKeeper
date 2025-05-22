@@ -56,6 +56,7 @@ type InfoStorage interface {
 	SaveNewData(userID string, DataInf servermodels.SaveDataInfo) (servermodels.SaveDataInfo, error)
 	GetData(userID string, storageID string) (servermodels.SaveDataInfo, error)
 	GetDataList(userID string) ([]servermodels.SaveDataInfo, error)
+	UpdateData(userID string, DataInf servermodels.SaveDataInfo) error
 }
 
 // DBStor структура для интерфейсов базы данных.
@@ -194,4 +195,15 @@ func (db *DBStor) GetDataList(userID string) ([]servermodels.SaveDataInfo, error
 	}
 
 	return outData, nil
+}
+
+func (db *DBStor) UpdateData(userID string, DataInf servermodels.SaveDataInfo) error {
+	var err error
+
+	_, err = db.DB.Exec(QuerryUpdateDataInfo, DataInf.StorageID, userID, DataInf.MetaInfo, DataInf.Type, DataInf.SaveTime)
+	if err != nil {
+		logger.Log.Error("Error in update newer data to datainfo Db", zap.Error(err))
+		return err
+	}
+	return nil
 }

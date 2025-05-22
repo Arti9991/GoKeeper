@@ -32,7 +32,26 @@ message SaveDataRequest {
 }
 
 message SaveDataResponse {
+  message ReverseData {
+    string metainfo = 1;
+    string dataType = 2;
+    string time = 3;
+    bytes data = 4; 
+  }
     string storageID = 1;
+    bool isOutdated = 2;
+    ReverseData reverseData = 3;
+}
+
+message UpdateDataRequest {
+  string storageID = 1;
+  string metainfo = 2;
+  string dataType = 3;
+  string time = 4;
+  bytes data = 5; 
+}
+
+message UpdateDataResponse {
 }
 
 message GiveDataRequest {
@@ -62,6 +81,7 @@ service Keeper {
   rpc RegisterUser(RegisterRequest) returns (RegisterResponce);
   rpc Loginuser(LoginRequest) returns (LoginResponce);
   rpc SaveData(SaveDataRequest) returns (SaveDataResponse);
+  rpc UpdateData(UpdateDataRequest) returns (UpdateDataResponse);
   rpc GiveData(GiveDataRequest) returns (GiveDataResponce);
   rpc GiveDataList(GiveDataListRequest) returns (GiveDataListResponce);
 }
