@@ -38,6 +38,8 @@ var (
 	WHERE storage_id = $1 AND user_id = $2`
 	QuerryGetDataList = `SELECT storage_id, meta_info, data_type, saved_time FROM  datainfo
 	WHERE user_id = $1`
+	QuerryDeleteDataInfo = `DELETE FROM datainfo
+  	WHERE storage_id = $1 AND user_id = $2`
 
 //		QuerryUpdateDataInfo = `WITH updated AS (
 //	    UPDATE datainfo
@@ -57,6 +59,7 @@ type InfoStorage interface {
 	GetData(userID string, storageID string) (servermodels.SaveDataInfo, error)
 	GetDataList(userID string) ([]servermodels.SaveDataInfo, error)
 	UpdateData(userID string, DataInf servermodels.SaveDataInfo) error
+	DeleteData(userID string, storageID string) error
 }
 
 // DBStor структура для интерфейсов базы данных.
@@ -74,8 +77,16 @@ func DBDataInit(DBInfo string) (*DBStor, error) {
 
 	db.DB, err = sql.Open("pgx", DBInfo)
 	if err != nil && DBInfo != "" {
+		logger.Log.Error("Error in opening datainfo Db", zap.Error(err))
+		return &DBStor{}, err
+	} else if DBInfo == "" {
+		return &DBStor{}, errors.New("turning off data base mode by command dbinfo = _")
+	}
+
+	_, err = db.DB.Exec(QuerryCreateData)
+	if err != nil {
 		// если в таблице есть неопределенный тип, определяем его
-		if strings.Contains(err.Error(), "SQLSTATE 42710") {
+		if strings.Contains(err.Error(), "SQLSTATE 42710") || strings.Contains(err.Error(), "SQLSTATE 42704") {
 			// определеяем тип для хранения типа данных
 			_, err = db.DB.Exec(QuerryCreateType)
 			if err != nil {
@@ -100,8 +111,6 @@ func DBDataInit(DBInfo string) (*DBStor, error) {
 			logger.Log.Error("Error in creating datainfo Db", zap.Error(err))
 			return &DBStor{}, err
 		}
-	} else if DBInfo == "" {
-		return &DBStor{}, errors.New("turning off data base mode by command dbinfo = _")
 	}
 
 	if err = db.DB.Ping(); err != nil {
@@ -109,11 +118,6 @@ func DBDataInit(DBInfo string) (*DBStor, error) {
 		return &DBStor{}, err
 	}
 
-	_, err = db.DB.Exec(QuerryCreateData)
-	if err != nil {
-		logger.Log.Error("Error in creating datainfo Db", zap.Error(err))
-		return &DBStor{}, err
-	}
 	logger.Log.Info("✓ connected to datainfo db!")
 	return &db, nil
 }
@@ -203,6 +207,17 @@ func (db *DBStor) UpdateData(userID string, DataInf servermodels.SaveDataInfo) e
 	_, err = db.DB.Exec(QuerryUpdateDataInfo, DataInf.StorageID, userID, DataInf.MetaInfo, DataInf.Type, DataInf.SaveTime)
 	if err != nil {
 		logger.Log.Error("Error in update newer data to datainfo Db", zap.Error(err))
+		return err
+	}
+	return nil
+}
+
+func (db *DBStor) DeleteData(userID string, storageID string) error {
+	var err error
+
+	_, err = db.DB.Exec(QuerryDeleteDataInfo, storageID, userID)
+	if err != nil {
+		logger.Log.Error("Error in delete data from datainfo Db", zap.Error(err))
 		return err
 	}
 	return nil

@@ -77,6 +77,14 @@ message GiveDataListResponce {
   }
   repeated DataList dataList = 1;
 }
+
+message DeleteDataRequest {
+  string storageID = 1;
+}
+message DeleteDataResponce{
+
+}
+
 service Keeper {
   rpc RegisterUser(RegisterRequest) returns (RegisterResponce);
   rpc Loginuser(LoginRequest) returns (LoginResponce);
@@ -84,4 +92,5 @@ service Keeper {
   rpc UpdateData(UpdateDataRequest) returns (UpdateDataResponse);
   rpc GiveData(GiveDataRequest) returns (GiveDataResponce);
   rpc GiveDataList(GiveDataListRequest) returns (GiveDataListResponce);
+  rpc DeleteData(DeleteDataRequest) returns (DeleteDataResponce);
 }

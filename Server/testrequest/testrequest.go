@@ -100,5 +100,13 @@ func BaseTestKeeper(c pb.KeeperClient) {
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	_, err = c.DeleteData(ctx2, &pb.DeleteDataRequest{
+		StorageID: savedData.StorageID,
+	}, grpc.Header(&header))
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	fmt.Println(dataList)
 }

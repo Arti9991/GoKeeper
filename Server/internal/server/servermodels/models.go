@@ -23,6 +23,8 @@ func CodePassword(src string) string {
 }
 
 var ErrorNoSuchUser = errors.New("No user with this login")
+var ErrNewerData = errors.New("Newer data at server")
+var ErrorUserAlready = errors.New("This user already exists")
 
 type SaveDataInfo struct {
 	UserID    string
@@ -32,5 +34,3 @@ type SaveDataInfo struct {
 	Type      string
 	Data      []byte
 }
-
-var ErrNewerData = errors.New("Newer data at server")

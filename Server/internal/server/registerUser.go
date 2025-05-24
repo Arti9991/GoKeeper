@@ -38,7 +38,11 @@ func (s *Server) RegisterUser(ctx context.Context, in *pb.RegisterRequest) (*pb.
 
 	err := s.UserStor.SaveNewUser(UserID, in.UserLogin, codedPassw)
 	if err != nil {
-		return &res, status.Error(codes.Unavailable, `Ошибка в сохранении пользователя`)
+		if err == servermodels.ErrorUserAlready {
+			return &res, status.Error(codes.Unavailable, `Пользователь уже зарегистрирован`)
+		} else {
+			return &res, status.Error(codes.Unavailable, `Ошибка в сохранении пользователя`)
+		}
 	}
 
 	JWTstr, err := BuildJWTString(UserID)

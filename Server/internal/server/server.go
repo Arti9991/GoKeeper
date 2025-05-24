@@ -52,7 +52,7 @@ func InitServer() *Server {
 	}
 	Serv.InfoStor = Serv.DBData
 
-	Serv.BinStor = binstor.NewBinStor()
+	Serv.BinStor = binstor.NewBinStor(Serv.Config.StorageDir)
 	Serv.BinStorFunc = Serv.BinStor
 
 	return Serv

@@ -34,6 +34,20 @@ func (m *MockInfoStorage) EXPECT() *MockInfoStorageMockRecorder {
 	return m.recorder
 }
 
+// DeleteData mocks base method.
+func (m *MockInfoStorage) DeleteData(userID, storageID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteData", userID, storageID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteData indicates an expected call of DeleteData.
+func (mr *MockInfoStorageMockRecorder) DeleteData(userID, storageID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteData", reflect.TypeOf((*MockInfoStorage)(nil).DeleteData), userID, storageID)
+}
+
 // GetData mocks base method.
 func (m *MockInfoStorage) GetData(userID, storageID string) (servermodels.SaveDataInfo, error) {
 	m.ctrl.T.Helper()

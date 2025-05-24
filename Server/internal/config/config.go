@@ -15,21 +15,21 @@ var FileConfig = true
 var ConfigPath = "Config.yaml"
 
 type Config struct {
-	HostAddr  string `env:"HOST_ADDRESS" yaml:"host_address"`
-	DBAdr     string `env:"DATABASE_URI" yaml:"database_info"`
-	InFileLog bool   `yaml:"save_log_to_file"`
+	HostAddr   string `env:"HOST_ADDRESS" yaml:"host_address"`
+	DBAdr      string `env:"DATABASE_URI" yaml:"database_info"`
+	InFileLog  bool   `yaml:"save_log_to_file"`
+	StorageDir string `env:"STORAGE_DIR" yaml:"storage_dir"`
 }
 
 // инициализация конфигурации
 // (внутри есть флаг FileConfig для чтения конфигурации из файла)
 func InitConf() Config {
+	var conf Config
 
 	if FileConfig {
-		config := ReadConfig(ConfigPath)
-		return config
+		conf = ReadConfig(ConfigPath)
 	}
 
-	var conf Config
 	err := env.Parse(&conf)
 	if err != nil {
 		logger.Log.Error("Wrong config file!", zap.Error(err))
@@ -39,6 +39,7 @@ func InitConf() Config {
 	flag.StringVar(&conf.DBAdr, "d", conf.DBAdr, "database connetion data") //"host=localhost user=myuser password=123456 dbname=Keeper sslmode=disable"
 	//flag.StringVar(&conf.AccurAddr, "r", conf.AccurAddr, "another api address")
 	flag.BoolVar(&conf.InFileLog, "l", conf.InFileLog, "enable logging in file")
+	flag.StringVar(&conf.StorageDir, "s", conf.StorageDir, "direktory with binary storage")
 	flag.Parse()
 
 	//CreateConfig(ConfigPath, conf)

@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Arti9991/GoKeeper/server/internal/logger"
@@ -19,6 +20,8 @@ import (
 // GetAddr получение исходного URL по укороченному
 func (s *Server) SaveData(ctx context.Context, in *pb.SaveDataRequest) (*pb.SaveDataResponse, error) {
 	var res pb.SaveDataResponse
+	res.ReverseData = new(pb.SaveDataResponse_ReverseData)
+
 	var err error
 	UserInfo := ctx.Value(interceptors.CtxKey).(servermodels.UserInfo)
 
@@ -31,7 +34,7 @@ func (s *Server) SaveData(ctx context.Context, in *pb.SaveDataRequest) (*pb.Save
 
 	fmt.Println(StorageID)
 	fmt.Println(len(StorageID))
-
+	// заполняем структуру для сохранени данных
 	var SaveDataInfo servermodels.SaveDataInfo
 	SaveDataInfo.Data = in.Data
 	SaveDataInfo.StorageID = StorageID
@@ -43,26 +46,45 @@ func (s *Server) SaveData(ctx context.Context, in *pb.SaveDataRequest) (*pb.Save
 		SaveDataInfo.SaveTime = time.Now()
 	}
 
+	// сохраняем новые данные
 	getData, err := s.InfoStor.SaveNewData(UserInfo.UserID, SaveDataInfo)
 	if err != nil {
+		// если возвращена ошибка, что на сервере данные свежее (по времени)
 		if err == servermodels.ErrNewerData {
 			fmt.Println(getData)
+			// выставляем ответный флаг что на сервере данные свежее
 			res.IsOutdated = true
-			res.ReverseData.Data, err = s.BinStorFunc.GetBinData(UserInfo.UserID, getData.StorageID)
-			if err != nil {
+			// и получаем обновленные данные из бинарного харнилища
+			getUpdateData, err2 := s.BinStorFunc.GetBinData(UserInfo.UserID, getData.StorageID)
+			// если файл в бинарном хранилище отсутствует (по каким-либо причинам)
+			if err2 != nil && strings.Contains(err2.Error(), "no such file") {
+				// то возвращаем полученные данные
+				getUpdateData = in.Data
+				// и сохраняем их на в бинарное хранилище
+				err3 := s.BinStorFunc.SaveBinData(UserInfo.UserID, getData.StorageID, in.Data)
+				if err3 != nil {
+					return &res, status.Error(codes.Aborted, `Ошибка в получении обновленных бинарных данных`)
+				}
+			} else if err2 != nil {
 				logger.Log.Error("Error in getting newer binary data", zap.Error(err))
 				return &res, status.Error(codes.Aborted, `Ошибка в получении обновленных бинарных данных`)
 			}
+			// записываем ответную структуру
+			res.ReverseData.Data = getUpdateData
 			res.ReverseData.DataType = getData.Type
 			res.ReverseData.Metainfo = getData.MetaInfo
 			res.ReverseData.Time = getData.SaveTime.Format(time.RFC850)
+			res.StorageID = getData.StorageID
 			return &res, nil
 		} else {
 			return &res, status.Error(codes.Aborted, `Ошибка в сохранении информации о данных`)
 		}
 	}
 
+	// если же изначально данных на сервере не было
+	// то ставим флаг что пришедшие данные не устарели
 	res.IsOutdated = false
+	// и сохраняем данные в бинарное хранилище
 	err = s.BinStorFunc.SaveBinData(UserInfo.UserID, StorageID, SaveDataInfo.Data)
 	if err != nil {
 		logger.Log.Error("Error in saving binary data", zap.Error(err))

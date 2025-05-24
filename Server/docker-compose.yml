@@ -8,6 +8,7 @@ services:
     environment:
       DATABASE_URI: host=postgres-db user=myuser password=123456 dbname=SafeKeeper sslmode=disable
       HOST_ADDRESS: :8082
+      STORAGE_DIR: "./Storage/"
     depends_on:
       - postgres-db
     networks:

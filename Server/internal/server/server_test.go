@@ -99,13 +99,23 @@ func TestRegisterUser(t *testing.T) {
 			},
 		},
 		{
-			Name:         "Repeated registration",
+			Name:         "DB error registration",
 			UserLogin:    "Test Login",
 			UserPassword: "1234567890",
-			err:          errors.New("Ошибка в сохранении пользователя"),
+			err:          errors.New("какая-то шибка в сохранении пользователя"),
 			want: want{
 				UserID:   "XDOJ6FD32JUYVJJ4",
 				serv_err: status.Error(codes.Unavailable, `Ошибка в сохранении пользователя`),
+			},
+		},
+		{
+			Name:         "User already exist registration",
+			UserLogin:    "Test Login",
+			UserPassword: "1234567890",
+			err:          servermodels.ErrorUserAlready,
+			want: want{
+				UserID:   "XDOJ6FD32JUYVJJ4",
+				serv_err: status.Error(codes.Unavailable, `Пользователь уже зарегистрирован`),
 			},
 		},
 	}

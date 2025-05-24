@@ -70,8 +70,13 @@ func (db *DBUsersStor) SaveNewUser(userID string, userLogin string, userPassw st
 
 	_, err = db.DB.Exec(QuerryNewUser, userID, userLogin, userPassw)
 	if err != nil {
-		logger.Log.Error("Error in saving new user to UsersDb", zap.Error(err))
-		return err
+		if strings.Contains(err.Error(), "SQLSTATE 23505") {
+			logger.Log.Info("User Already exist.", zap.Error(err))
+			return servermodels.ErrorUserAlready
+		} else {
+			logger.Log.Error("Error in saving new user to UsersDb", zap.Error(err))
+			return err
+		}
 	}
 	return nil
 }

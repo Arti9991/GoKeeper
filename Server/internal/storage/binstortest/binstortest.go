@@ -38,3 +38,11 @@ func (s *BinStorTest) GetBinData(userID string, storageID string) ([]byte, error
 	out = s.MainStor[storageID]
 	return out, nil
 }
+
+func (s *BinStorTest) RemoveBinData(userID string, storageID string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	delete(s.MainStor, storageID)
+	return nil
+}
