@@ -741,3 +741,86 @@ func TestGetDataList(t *testing.T) {
 		})
 	}
 }
+
+func TestDeleteData(t *testing.T) {
+	// создаём контроллер
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// создаём объект-заглушку
+	mockUsers := mocks.NewMockUserStor(ctrl)
+	mockInfo := mocks.NewMockInfoStorage(ctrl)
+
+	serv := InitServerTest(mockUsers, mockInfo)
+
+	//CurrTime := time.Now().Format(time.RFC850)
+
+	type want struct {
+		serv_err error
+	}
+	tests := []struct {
+		Name       string
+		DataToSend *pb.DeleteDataRequest
+		UserID     string
+		UserExist  bool
+		err        error
+		want       want
+	}{
+		{
+			Name: "Simple data delete",
+			DataToSend: &pb.DeleteDataRequest{
+				StorageID: "storageID",
+			},
+			UserID:    "XDOJ6FD32JUYVJJ4",
+			UserExist: true,
+			err:       nil,
+			want: want{
+				serv_err: nil,
+			},
+		},
+		{
+			Name: "Data delete with db error",
+			DataToSend: &pb.DeleteDataRequest{
+				StorageID: "storageID",
+			},
+			UserID:    "XDOJ6FD32JUYVJJ4",
+			UserExist: true,
+			err:       errors.New("любая ошибка базы данных"),
+			want: want{
+				serv_err: status.Error(codes.Aborted, `Ошибка в удалении информации о данных`),
+			},
+		},
+		{
+			Name: "Data delete with unregistered user",
+			DataToSend: &pb.DeleteDataRequest{
+				StorageID: "storageID",
+			},
+			UserID:    "",
+			UserExist: false,
+			err:       nil,
+			want: want{
+				serv_err: status.Errorf(codes.Aborted, `Пользователь не авторизован`),
+			},
+		},
+	}
+
+	ctx := context.Background()
+
+	for _, test := range tests {
+
+		mockInfo.EXPECT().
+			DeleteData(gomock.Any(), gomock.Any()).
+			Return(test.err).
+			MaxTimes(1)
+
+		t.Run(test.Name, func(t *testing.T) {
+
+			newCtx := context.WithValue(ctx, interceptors.CtxKey,
+				servermodels.UserInfo{UserID: test.UserID, Register: test.UserExist})
+
+			_, err := serv.DeleteData(newCtx, test.DataToSend)
+			require.Equal(t, err, test.want.serv_err)
+
+		})
+	}
+}
