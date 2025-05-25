@@ -80,10 +80,20 @@ var userRegister = &cobra.Command{
 var saveData = &cobra.Command{
 	Use:   "save",
 	Short: "Save users data",
-	Long:  `Save users data. Where 1st is data type (AUTH,CARD,TEXT,BINARY), 2nd information about data, 3rd path to data(if it biybary data file)`,
+	Long:  `Save users data. Where 1st is data type (AUTH,CARD,TEXT,BINARY)`,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		requseter.TestSaveDataRequest(args[0])
+	},
+}
+
+var getData = &cobra.Command{
+	Use:   "Get",
+	Short: "Get users data",
+	Long:  `Get users data. Where 1st is data ID`,
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		requseter.TestGetDataRequest(args[0])
 	},
 }
 
@@ -99,6 +109,7 @@ func init() {
 	rootCmd.AddCommand(userLogin)
 	rootCmd.AddCommand(userRegister)
 	rootCmd.AddCommand(saveData)
+	rootCmd.AddCommand(getData)
 	// rootCmd.AddCommand(listCmd)
 	// rootCmd.AddCommand(deleteCmd)
 }

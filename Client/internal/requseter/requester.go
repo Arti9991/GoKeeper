@@ -9,11 +9,13 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/Arti9991/GoKeeper/client/internal/clientmodels"
 	pb "github.com/Arti9991/GoKeeper/client/internal/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 )
 
 type ReqStruct struct {
@@ -113,7 +115,7 @@ func TestRegisterRequest(Login string, Password string) error {
 
 func TestSaveDataRequest(Type string) error {
 	var data []byte
-	// var UserID string
+	var UserID string
 	var Metainfo string
 
 	switch Type {
@@ -145,37 +147,51 @@ func TestSaveDataRequest(Type string) error {
 		CVV = strings.TrimSuffix(CVV, "\n")
 		name = strings.TrimSuffix(name, "\n")
 
-		buf := clientmodels.CardInfo{
+		struc := clientmodels.CardInfo{
 			Number:  num,
 			ExpDate: date,
 			CVVcode: CVV,
 			Holder:  name,
 		}
-		err = gob.NewEncoder(bytes.NewBuffer(data)).Encode(buf)
+		var buf bytes.Buffer
+		enc := gob.NewEncoder(&buf)
+		enc.Encode(struc)
 		if err != nil {
+			fmt.Println(err)
 			return err
 		}
 
-		var buff2 clientmodels.CardInfo
-		err = gob.NewDecoder(bytes.NewBuffer(data)).Decode(&buff2)
-		fmt.Println(err)
-		fmt.Println(buff2)
+		data = buf.Bytes()
+
+		fmt.Println(data)
+		//fmt.Println(buff2)
 		fmt.Println(Metainfo)
+
+		// out := clientmodels.CardInfo{}
+		// dec := gob.NewDecoder(&buf)
+		// dec.Decode(&out)
+		// fmt.Println(out.Number)
+		// fmt.Println(out.CVVcode)
+		// fmt.Println(out.ExpDate)
+		// fmt.Println(out.Holder)
 	}
-	// fmt.Println("Open token")
-	// file, err := os.Open("./Token.txt")
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	//logger.Log.Error("SAVE Error in opening file", zap.Error(err))
-	// 	return err
-	// }
-	// reader := bufio.NewReader(file)
-	// // Считываем строку текста
-	// UserID, err = reader.ReadString('\n')
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return err
-	// }
+	fmt.Println("Open token")
+	file, err := os.Open("./Token.txt")
+	if err != nil {
+		fmt.Println(err)
+		//logger.Log.Error("SAVE Error in opening file", zap.Error(err))
+		return err
+	}
+	reader := bufio.NewReader(file)
+	// Считываем строку текста
+	UserID, err = reader.ReadString('\n')
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	//Выводим строку
+	UserID = strings.TrimSuffix(UserID, "\n")
+	fmt.Printf("%#v", UserID)
 	// var d_ID []byte
 	// n, err := file.Read(d_ID)
 	// if err != nil || n == 0 {
@@ -183,104 +199,89 @@ func TestSaveDataRequest(Type string) error {
 	// 	fmt.Println(err)
 	// 	return err
 	// }
-	// Выводим строку
+	// //Выводим строку
 	// UserID = strings.TrimSuffix(UserID, "\n")
 	// fmt.Printf("%#v", UserID)
 
-	// var header metadata.MD
-	// md := metadata.New(map[string]string{"UserID": UserID})
-	// ctx := metadata.NewOutgoingContext(context.Background(), md)
+	var header metadata.MD
+	md := metadata.New(map[string]string{"UserID": UserID})
+	ctx := metadata.NewOutgoingContext(context.Background(), md)
 
-	// dial, err := grpc.NewClient(":8082", grpc.WithTransportCredentials(insecure.NewCredentials())) //":8082"
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// CurrTime := time.Now().Format(time.RFC850)
-	// req := pb.NewKeeperClient(dial)
-	// ans, err := req.SaveData(ctx, &pb.SaveDataRequest{
-	// 	Metainfo: Metainfo,
-	// 	DataType: Type,
-	// 	Time:     CurrTime,
-	// 	Data:     data,
-	// }, grpc.Header(&header))
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return err
-	// }
+	dial, err := grpc.NewClient(":8082", grpc.WithTransportCredentials(insecure.NewCredentials())) //":8082"
+	if err != nil {
+		log.Fatal(err)
+	}
+	CurrTime := time.Now().Format(time.RFC850)
+	req := pb.NewKeeperClient(dial)
+	ans, err := req.SaveData(ctx, &pb.SaveDataRequest{
+		Metainfo: Metainfo,
+		DataType: Type,
+		Time:     CurrTime,
+		Data:     data,
+	}, grpc.Header(&header))
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
 
-	// fmt.Println(ans.StorageID)
+	fmt.Println(ans.StorageID)
 
 	return nil
 }
 
-// ctx := context.Background()
+func TestGetDataRequest(StorageID string) error {
+	var UserID string
 
-// 	respReg, err := c.Loginuser(ctx, &pb.LoginRequest{
-// 		UserLogin:    "TestUserSECOND",
-// 		UserPassword: "123456789",
-// 	})
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
+	fmt.Println("Open token")
+	file, err := os.Open("./Token.txt")
+	if err != nil {
+		fmt.Println(err)
+		//logger.Log.Error("SAVE Error in opening file", zap.Error(err))
+		return err
+	}
+	reader := bufio.NewReader(file)
+	// Считываем строку текста
+	UserID, err = reader.ReadString('\n')
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	//Выводим строку
+	UserID = strings.TrimSuffix(UserID, "\n")
+	fmt.Printf("%#v", UserID)
 
-// 	// respReg, err := c.RegisterUser(ctx, &pb.RegisterRequest{
-// 	// 	UserLogin:    "TestUserSECOND",
-// 	// 	UserPassword: "123456789",
-// 	// })
-// 	// if err != nil {
-// 	// 	log.Fatal(err)
-// 	// }
+	var header metadata.MD
+	md := metadata.New(map[string]string{"UserID": UserID})
+	ctx := metadata.NewOutgoingContext(context.Background(), md)
 
-// 	fmt.Println(respReg.UserID)
-// 	var header metadata.MD
-// 	md := metadata.New(map[string]string{"UserID": respReg.UserID})
-// 	ctx2 := metadata.NewOutgoingContext(context.Background(), md)
+	dial, err := grpc.NewClient(":8082", grpc.WithTransportCredentials(insecure.NewCredentials())) //":8082"
+	if err != nil {
+		log.Fatal(err)
+	}
 
-// 	CurrTime := time.Now().Format(time.RFC850)
-// 	savedData, err := c.SaveData(ctx2, &pb.SaveDataRequest{
-// 		Data:     []byte("Hello there!"),
-// 		DataType: "TEXT",
-// 		Metainfo: "METAINFO",
-// 		Time:     CurrTime,
-// 	}, grpc.Header(&header))
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
+	req := pb.NewKeeperClient(dial)
+	ans, err := req.GiveData(ctx, &pb.GiveDataRequest{
+		StorageID: StorageID,
+	}, grpc.Header(&header))
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
 
-// 	recievedData, err := c.GiveData(ctx2, &pb.GiveDataRequest{
-// 		StorageID: savedData.StorageID,
-// 	}, grpc.Header(&header))
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
+	switch ans.DataType {
+	case "CARD":
 
-// 	fmt.Printf("Recieved data: Type: %s, MetaInfo: %s, time: %s\n, Data: %s\n",
-// 		recievedData.DataType,
-// 		recievedData.Metainfo,
-// 		recievedData.Time,
-// 		string(recievedData.Data))
+		fmt.Println(ans.Data)
+		//fmt.Println(buff2)
+		fmt.Println(ans.Metainfo)
 
-// 	_, err = c.UpdateData(ctx2, &pb.UpdateDataRequest{
-// 		StorageID: savedData.StorageID,
-// 		Data:      []byte("Hello there! UPDATE Not there... HERE!!!"),
-// 		DataType:  "TEXT",
-// 		Metainfo:  "second METAINFO updated",
-// 		Time:      CurrTime,
-// 	}, grpc.Header(&header))
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
-
-// 	dataList, err := c.GiveDataList(ctx2, &pb.GiveDataListRequest{}, grpc.Header(&header))
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
-
-// 	_, err = c.DeleteData(ctx2, &pb.DeleteDataRequest{
-// 		StorageID: savedData.StorageID,
-// 	}, grpc.Header(&header))
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
-
-// 	fmt.Println(dataList)
+		out := clientmodels.CardInfo{}
+		dec := gob.NewDecoder(bytes.NewBuffer(ans.Data))
+		dec.Decode(&out)
+		fmt.Println(out.Number)
+		fmt.Println(out.CVVcode)
+		fmt.Println(out.ExpDate)
+		fmt.Println(out.Holder)
+	}
+	return nil
+}
