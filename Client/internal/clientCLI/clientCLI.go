@@ -77,6 +77,16 @@ var userRegister = &cobra.Command{
 	},
 }
 
+var saveData = &cobra.Command{
+	Use:   "save",
+	Short: "Save users data",
+	Long:  `Save users data. Where 1st is data type (AUTH,CARD,TEXT,BINARY), 2nd information about data, 3rd path to data(if it biybary data file)`,
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		requseter.TestSaveDataRequest(args[0])
+	},
+}
+
 func StartCLI(req *requseter.ReqStruct) {
 
 	if err := rootCmd.Execute(); err != nil {
@@ -88,6 +98,7 @@ func StartCLI(req *requseter.ReqStruct) {
 func init() {
 	rootCmd.AddCommand(userLogin)
 	rootCmd.AddCommand(userRegister)
+	rootCmd.AddCommand(saveData)
 	// rootCmd.AddCommand(listCmd)
 	// rootCmd.AddCommand(deleteCmd)
 }
