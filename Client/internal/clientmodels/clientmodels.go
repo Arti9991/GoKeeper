@@ -14,4 +14,15 @@ type LoginInfo struct {
 	Password string
 }
 
+type JournalInfo struct {
+	Opperation string
+	StorageID  string
+	DataType   string
+	MetaInfo   string
+	SaveTime   string
+}
+
 var ErrorInput = errors.New("ошибка ввода")
+
+var TokenFile = "./Token.txt"
+var JournalFile = "./Journal.txt"
