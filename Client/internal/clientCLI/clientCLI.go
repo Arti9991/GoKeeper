@@ -6,6 +6,7 @@ import (
 
 	"github.com/Arti9991/GoKeeper/client/internal/requseter"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // func StartCLI(message string) {
@@ -83,21 +84,42 @@ var saveData = &cobra.Command{
 	Long:  `Save users data. Where 1st is data type (AUTH,CARD,TEXT,BINARY)`,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		requseter.TestSaveDataRequest(args[0])
+		req := requseter.NewRequester(":8082")
+		requseter.SaveDataRequest(args[0], req, viper.GetBool("offlineMode"))
 	},
 }
 
 var getData = &cobra.Command{
-	Use:   "Get",
+	Use:   "get",
 	Short: "Get users data",
 	Long:  `Get users data. Where 1st is data ID`,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		requseter.TestGetDataRequest(args[0])
+		req := requseter.NewRequester(":8082")
+		requseter.GetDataRequest(args[0], req, viper.GetBool("offlineMode"))
 	},
 }
 
-func StartCLI(req *requseter.ReqStruct) {
+var showTable = &cobra.Command{
+	Use:   "show",
+	Short: "show users data",
+	Long:  `show users data`,
+	Run: func(cmd *cobra.Command, args []string) {
+		req := requseter.NewRequester(":8082")
+		requseter.ShowData(req)
+	},
+}
+
+var syncData = &cobra.Command{
+	Use:   "sync",
+	Short: "Sync users data",
+	Long:  `Sync users data`,
+	Run: func(cmd *cobra.Command, args []string) {
+		requseter.SyncRequest()
+	},
+}
+
+func StartCLI() {
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
@@ -106,10 +128,17 @@ func StartCLI(req *requseter.ReqStruct) {
 }
 
 func init() {
+	// Добавляем глобальный флаг к root-команде
+	rootCmd.PersistentFlags().Bool("offlineMode", false, "Работа в офлайн режиме")
+	_ = viper.BindPFlag("offlineMode", rootCmd.PersistentFlags().Lookup("offlineMode"))
+
 	rootCmd.AddCommand(userLogin)
 	rootCmd.AddCommand(userRegister)
 	rootCmd.AddCommand(saveData)
 	rootCmd.AddCommand(getData)
+	rootCmd.AddCommand(syncData)
+	rootCmd.AddCommand(showTable)
+
 	// rootCmd.AddCommand(listCmd)
 	// rootCmd.AddCommand(deleteCmd)
 }

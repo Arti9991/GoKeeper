@@ -270,10 +270,11 @@ func TestSaveData(t *testing.T) {
 		{
 			Name: "Simple data send",
 			DataToSend: &pb.SaveDataRequest{
-				Data:     []byte("Hello there!"),
-				DataType: "TEXT",
-				Metainfo: "second METAINFO updated",
-				Time:     CurrTime,
+				StorageID: "StorageID",
+				Data:      []byte("Hello there!"),
+				DataType:  "TEXT",
+				Metainfo:  "second METAINFO updated",
+				Time:      CurrTime,
 			},
 			ReverseData: servermodels.SaveDataInfo{},
 			UserID:      "XDOJ6FD32JUYVJJ4",
@@ -286,10 +287,11 @@ func TestSaveData(t *testing.T) {
 		{
 			Name: "Data send with error in DB",
 			DataToSend: &pb.SaveDataRequest{
-				Data:     []byte("Hello there!"),
-				DataType: "TEXT",
-				Metainfo: "second METAINFO updated",
-				Time:     CurrTime,
+				StorageID: "StorageID",
+				Data:      []byte("Hello there!"),
+				DataType:  "TEXT",
+				Metainfo:  "second METAINFO updated",
+				Time:      CurrTime,
 			},
 			ReverseData: servermodels.SaveDataInfo{},
 			UserID:      "XDOJ6FD32JUYVJJ4",
@@ -302,14 +304,15 @@ func TestSaveData(t *testing.T) {
 		{
 			Name: "Data send when newer data in DB",
 			DataToSend: &pb.SaveDataRequest{
-				Data:     []byte("Hello there!"),
-				DataType: "TEXT",
-				Metainfo: "second METAINFO updated",
-				Time:     CurrTime,
+				StorageID: "StorageID",
+				Data:      []byte("Hello there!"),
+				DataType:  "TEXT",
+				Metainfo:  "second METAINFO updated",
+				Time:      CurrTime,
 			},
 			ReverseData: servermodels.SaveDataInfo{
 				UserID:    "XDOJ6FD32JUYVJJ4",
-				StorageID: "Some storage ID",
+				StorageID: "StorageID",
 				MetaInfo:  "NEWER METAINFO updated",
 				SaveTime:  time.Now(),
 				Type:      "TEXT",
@@ -325,10 +328,11 @@ func TestSaveData(t *testing.T) {
 		{
 			Name: "Data send when user is not registered",
 			DataToSend: &pb.SaveDataRequest{
-				Data:     []byte("Hello there!"),
-				DataType: "TEXT",
-				Metainfo: "second METAINFO updated",
-				Time:     CurrTime,
+				StorageID: "StorageID",
+				Data:      []byte("Hello there!"),
+				DataType:  "TEXT",
+				Metainfo:  "second METAINFO updated",
+				Time:      CurrTime,
 			},
 			ReverseData: servermodels.SaveDataInfo{},
 			UserID:      "",

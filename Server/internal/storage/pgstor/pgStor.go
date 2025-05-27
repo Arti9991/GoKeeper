@@ -3,6 +3,7 @@ package pgstor
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -136,7 +137,8 @@ func (db *DBStor) SaveNewData(userID string, DataInf servermodels.SaveDataInfo) 
 				return outData, err
 			}
 
-			if BaseTime.Before(DataInf.SaveTime) {
+			if BaseTime.After(DataInf.SaveTime) {
+				fmt.Println("IN BEFORE")
 				row := db.DB.QueryRow(QuerryGetServDataInfo, DataInf.StorageID, userID)
 				err = row.Scan(&outData.MetaInfo, &outData.Type)
 				if err != nil {

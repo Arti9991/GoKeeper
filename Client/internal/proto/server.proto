@@ -25,10 +25,11 @@ message LoginResponce {
 }
 
 message SaveDataRequest {
-  string metainfo = 1;
-  string dataType = 2;
-  string time = 3;
-  bytes data = 4; 
+  string storageID = 1;
+  string metainfo = 2;
+  string dataType = 3;
+  string time = 4;
+  bytes data = 5; 
 }
 
 message SaveDataResponse {

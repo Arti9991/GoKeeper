@@ -20,9 +20,20 @@ type JournalInfo struct {
 	DataType   string
 	MetaInfo   string
 	SaveTime   string
+	Sync       bool
+}
+
+type NewerData struct {
+	StorageID string
+	DataType  string
+	MetaInfo  string
+	SaveTime  string
+	Data      []byte
 }
 
 var ErrorInput = errors.New("ошибка ввода")
+var ErrNewerData = errors.New("более новые данные на сервере")
 
 var TokenFile = "./Token.txt"
-var JournalFile = "./Journal.txt"
+var JournalFile = "./Journal.jl"
+var StorageDir = "./Storage/"

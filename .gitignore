@@ -4,9 +4,7 @@
 *.dll
 *.so
 *.dylib
-*.txt
-*.csv
-*.log
+
 
 # Test binary, built with `go test -c`
 *.test
@@ -22,7 +20,15 @@ cmd/shortener/shortener
 # Dependency directories (remove the comment below to include it)
 vendor/
 server/storage
+client/cmd/client/storage
 
 # IDEs directories
 .idea
 .vscode
+
+#
+*.txt
+*.csv
+*.log
+*.jl
+*.db

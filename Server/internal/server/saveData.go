@@ -2,8 +2,6 @@ package server
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"strings"
 	"time"
@@ -29,8 +27,7 @@ func (s *Server) SaveData(ctx context.Context, in *pb.SaveDataRequest) (*pb.Save
 		return &res, status.Errorf(codes.Aborted, `Пользователь не авторизован`)
 	}
 
-	hashData := sha256.Sum256(in.Data)
-	StorageID := hex.EncodeToString(hashData[:])
+	StorageID := in.StorageID
 
 	fmt.Println(StorageID)
 	fmt.Println(len(StorageID))

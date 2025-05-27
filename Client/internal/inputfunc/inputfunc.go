@@ -17,16 +17,16 @@ func ParceInput(Type string) ([]byte, error) {
 	switch Type {
 	case "CARD":
 		fmt.Printf("\nВведите данные карты\n")
-		fmt.Printf("Введите номер карты:")
+		fmt.Printf("Введите номер карты: ")
 		// открываем потоковое чтение из консоли
 		reader := bufio.NewReader(os.Stdin)
 		// читаем строку из консоли
 		num, err := reader.ReadString('\n')
-		fmt.Printf("Введите срок действия карты:")
+		fmt.Printf("Введите срок действия карты: ")
 		date, err := reader.ReadString('\n')
-		fmt.Printf("Введите CVV карты:")
+		fmt.Printf("Введите CVV карты: ")
 		CVV, err := reader.ReadString('\n')
-		fmt.Printf("Введите владельца карты:")
+		fmt.Printf("Введите владельца карты: ")
 		name, err := reader.ReadString('\n')
 		if err != nil {
 			fmt.Println(err)
@@ -58,12 +58,12 @@ func ParceInput(Type string) ([]byte, error) {
 
 	case "AUTH":
 		fmt.Printf("\nВведите для авторизации\n")
-		fmt.Printf("Введите логин")
+		fmt.Printf("Введите логин: ")
 		// открываем потоковое чтение из консоли
 		reader := bufio.NewReader(os.Stdin)
 		// читаем строку из консоли
 		log, err := reader.ReadString('\n')
-		fmt.Printf("Введите пароль")
+		fmt.Printf("Введите пароль: ")
 		passw, err := reader.ReadString('\n')
 		if err != nil {
 			fmt.Println(err)
@@ -91,7 +91,7 @@ func ParceInput(Type string) ([]byte, error) {
 		return data, nil
 
 	case "TEXT":
-		fmt.Printf("\nВведите текст для сохранения:")
+		fmt.Printf("\nВведите текст для сохранения: ")
 		// открываем потоковое чтение из консоли
 		reader := bufio.NewReader(os.Stdin)
 		// читаем строку из консоли
@@ -107,4 +107,47 @@ func ParceInput(Type string) ([]byte, error) {
 	default:
 		return nil, clientmodels.ErrorInput
 	}
+}
+
+func ParceAnswer(Data []byte, storageID string, Type string, Metainfo string) error {
+
+	switch Type {
+	case "CARD":
+		//fmt.Println(Data)
+		//fmt.Println(buff2)
+		fmt.Printf("Information: %s\n", Metainfo)
+
+		out := clientmodels.CardInfo{}
+		dec := gob.NewDecoder(bytes.NewBuffer(Data))
+		err := dec.Decode(&out)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("Card numver: %s\n", out.Number)
+		fmt.Printf("Card CVV: %s\n", out.CVVcode)
+		fmt.Printf("Card exipre: %s\n", out.ExpDate)
+		fmt.Printf("Card holder: %s\n", out.Holder)
+		return nil
+
+	case "AUTH":
+		fmt.Printf("Information: %s\n", Metainfo)
+		fmt.Println(Metainfo)
+
+		out := clientmodels.LoginInfo{}
+		dec := gob.NewDecoder(bytes.NewBuffer(Data))
+		err := dec.Decode(&out)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("Login: %s\n", out.Login)
+		fmt.Printf("Password: %s\n", out.Password)
+		return nil
+	case "TEXT":
+		fmt.Printf("Information: %s\n", Metainfo)
+		fmt.Println(Metainfo)
+
+		fmt.Printf("Saved text info: \n%s\n", string(Data))
+		return nil
+	}
+	return nil
 }

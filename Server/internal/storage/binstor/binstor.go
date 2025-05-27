@@ -81,16 +81,22 @@ func (s *BinStor) GetBinData(userID string, storageID string) ([]byte, error) {
 	var out []byte
 	out, ok := s.MainStor[storageID]
 	if !ok {
-		file, err := os.OpenFile(s.StorageDir+userID+"_"+storageID, os.O_RDONLY, 0644)
+		// file, err := os.OpenFile(s.StorageDir+userID+"_"+storageID, os.O_RDONLY, 0644)
+		// if err != nil {
+		// 	logger.Log.Error("GET Error in opening file", zap.Error(err))
+		// 	return nil, err
+		// }
+		out, err := os.ReadFile(s.StorageDir + userID + "_" + storageID)
 		if err != nil {
-			logger.Log.Error("GET Error in opening file", zap.Error(err))
-			return nil, err
-		}
-		n, err := file.Read(out)
-		if err != nil || n == 0 {
 			logger.Log.Error("Error in reading from file", zap.Error(err))
 			return nil, err
 		}
+		// reader := bufio.NewReader(file)
+		// n, err := reader.ReadAll(out)
+		// if err != nil || n == 0 {
+		// 	logger.Log.Error("Error in reading from file", zap.Error(err))
+		// 	return nil, err
+		// }
 		return out, nil
 	}
 

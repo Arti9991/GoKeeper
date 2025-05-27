@@ -1,8 +1,10 @@
 package journal
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/Arti9991/GoKeeper/client/internal/clientmodels"
@@ -31,4 +33,35 @@ func JournalSave(JrInf clientmodels.JournalInfo) error {
 		return err
 	}
 	return nil
+}
+
+func JournalGet() ([]clientmodels.JournalInfo, error) {
+	var JourMass []clientmodels.JournalInfo
+	var err error
+
+	file, err := os.OpenFile(clientmodels.JournalFile, os.O_RDONLY, 0644)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	defer file.Close()
+
+	reader := bufio.NewReader(file)
+	dec := json.NewDecoder(reader) // (1)
+	for {
+		var Jour clientmodels.JournalInfo
+		err := dec.Decode(&Jour) // (2)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			fmt.Println(err)
+			return nil, err
+		}
+		if !Jour.Sync {
+			JourMass = append(JourMass, Jour)
+		}
+	}
+
+	return JourMass, nil
 }
