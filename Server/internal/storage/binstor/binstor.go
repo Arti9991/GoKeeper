@@ -44,6 +44,8 @@ func (s *BinStor) SaveBinData(userID string, storageID string, binData []byte) e
 		logger.Log.Error("SAVE Error in opening file", zap.Error(err))
 		return err
 	}
+	defer file.Close()
+
 	n, err := file.Write(binData)
 	if err != nil || n == 0 {
 		logger.Log.Error("Error in saving to file", zap.Error(err))
@@ -65,6 +67,8 @@ func (s *BinStor) UpdateBinData(userID string, storageID string, binData []byte)
 		logger.Log.Error("UPDATE Error in opening file", zap.Error(err))
 		return err
 	}
+	defer file.Close()
+
 	n, err := file.Write(binData)
 	if err != nil || n == 0 {
 		logger.Log.Error("Error in updating file", zap.Error(err))

@@ -21,7 +21,7 @@ import (
 )
 
 func TestSaveDataRequest(Type string) error {
-	offlineMode := false
+	//offlineMode := false
 
 	var UserID string
 	var Metainfo string
@@ -55,9 +55,9 @@ func TestSaveDataRequest(Type string) error {
 	UserID = strings.TrimSuffix(UserID, "\n")
 	fmt.Printf("%#v", UserID)
 
-	if !offlineMode {
-		SyncRequest()
-	}
+	// if !offlineMode {
+	// 	SyncRequest(offlineMode)
+	// }
 	var header metadata.MD
 	md := metadata.New(map[string]string{"UserID": UserID})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)

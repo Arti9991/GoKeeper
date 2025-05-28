@@ -15,9 +15,9 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-func SendWithUpdate(StorageID string, JrInf clientmodels.JournalInfo, req *ReqStruct, data []byte) error {
-
-	NewDt, err := SaveSend(JrInf, req, data)
+func SendWithUpdate(StorageID string, DtInf clientmodels.NewerData, req *ReqStruct, data []byte) error {
+	fmt.Println("SendWithUpdate")
+	NewDt, err := SaveSend(DtInf, req, data)
 	if err == nil {
 		err2 := req.DBStor.MarkDone(StorageID)
 		if err2 != nil {
@@ -25,22 +25,22 @@ func SendWithUpdate(StorageID string, JrInf clientmodels.JournalInfo, req *ReqSt
 		}
 		return nil
 	} else if err == clientmodels.ErrNewerData {
-		fmt.Println(NewDt)
-		JrInf2 := clientmodels.JournalInfo{
-			Opperation: "SAVE",
-			StorageID:  NewDt.StorageID,
-			DataType:   NewDt.DataType,
-			MetaInfo:   NewDt.MetaInfo,
-			SaveTime:   NewDt.SaveTime,
-			Sync:       true,
+		//fmt.Println(NewDt)
+		fmt.Println(clientmodels.ErrNewerData)
+		DtInf2 := clientmodels.NewerData{
+			StorageID: NewDt.StorageID,
+			DataType:  NewDt.DataType,
+			MetaInfo:  NewDt.MetaInfo,
+			SaveTime:  NewDt.SaveTime,
 		}
-		err2 := req.DBStor.UpdateInfoNewer(NewDt.StorageID, JrInf2)
-		if err != nil {
+		err2 := req.DBStor.UpdateInfoNewer(NewDt.StorageID, DtInf2)
+		if err2 != nil {
 			fmt.Println(err2)
 			return err2
 		}
-		err2 = req.BinStor.SaveBinData(NewDt.StorageID, NewDt.Data)
-		if err != nil {
+		fmt.Println("TO BIN DATA UPDATE")
+		err2 = req.BinStor.UpdateBinData(NewDt.StorageID, NewDt.Data)
+		if err2 != nil {
 			fmt.Println(err2)
 			return err2
 		}
@@ -50,7 +50,7 @@ func SendWithUpdate(StorageID string, JrInf clientmodels.JournalInfo, req *ReqSt
 		return err
 	}
 }
-func SaveSend(JrInf clientmodels.JournalInfo, req *ReqStruct, data []byte) (clientmodels.NewerData, error) {
+func SaveSend(JrInf clientmodels.NewerData, req *ReqStruct, data []byte) (clientmodels.NewerData, error) {
 	var UserID string
 	var NewerData clientmodels.NewerData
 

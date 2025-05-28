@@ -47,6 +47,12 @@ import (
 // 	}
 // }
 
+var (
+	buildVersion string = "1.0"
+	buildDate    string = "28.05.2025"
+	buildCommit  string = "HEAD"
+)
+
 var rootCmd = &cobra.Command{
 	Use:   "Keeper client",
 	Short: "Client for GoKeeper service",
@@ -55,6 +61,17 @@ var rootCmd = &cobra.Command{
 		offline mode and syncronise it with server in normal mode`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Welcome to Keeper client! Use --help for usage.")
+	},
+}
+
+var versionCmd = &cobra.Command{
+	Use:   "version",
+	Short: "Print the version number of Keeper",
+	Long:  `Print the version number of Keeper`,
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Printf("Client build version: %s\n", buildVersion)
+		fmt.Printf("Client build date: %s\n", buildDate)
+		fmt.Printf("Client build commit: %s\n", buildCommit)
 	},
 }
 
@@ -115,7 +132,19 @@ var syncData = &cobra.Command{
 	Short: "Sync users data",
 	Long:  `Sync users data`,
 	Run: func(cmd *cobra.Command, args []string) {
-		requseter.SyncRequest()
+		req := requseter.NewRequester(":8082")
+		requseter.SyncRequest(req, viper.GetBool("offlineMode"))
+	},
+}
+
+var deleteData = &cobra.Command{
+	Use:   "delete",
+	Short: "delete users data",
+	Long:  `delete users data`,
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		req := requseter.NewRequester(":8082")
+		requseter.DeleteDataRequest(args[0], req, viper.GetBool("offlineMode"))
 	},
 }
 
@@ -138,6 +167,8 @@ func init() {
 	rootCmd.AddCommand(getData)
 	rootCmd.AddCommand(syncData)
 	rootCmd.AddCommand(showTable)
+	rootCmd.AddCommand(versionCmd)
+	rootCmd.AddCommand(deleteData)
 
 	// rootCmd.AddCommand(listCmd)
 	// rootCmd.AddCommand(deleteCmd)

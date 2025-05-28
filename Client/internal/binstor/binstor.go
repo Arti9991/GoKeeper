@@ -1,6 +1,7 @@
 package binstor
 
 import (
+	"fmt"
 	"os"
 	"sync"
 )
@@ -40,6 +41,8 @@ func (s *BinStor) SaveBinData(storageID string, binData []byte) error {
 		//logger.Log.Error("SAVE Error in opening file", zap.Error(err))
 		return err
 	}
+	defer file.Close()
+
 	n, err := file.Write(binData)
 	if err != nil || n == 0 {
 		//logger.Log.Error("Error in saving to file", zap.Error(err))
@@ -50,17 +53,16 @@ func (s *BinStor) SaveBinData(storageID string, binData []byte) error {
 }
 
 func (s *BinStor) UpdateBinData(storageID string, binData []byte) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
 
-	s.MainStor[storageID] = binData
-
+	fmt.Println("UpdateBinData")
 	// Также сохраняем данные на диск
-	file, err := os.OpenFile(s.StorageDir+storageID, os.O_WRONLY|os.O_CREATE, 0644)
+	file, err := os.OpenFile(s.StorageDir+storageID, os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
 		//logger.Log.Error("UPDATE Error in opening file", zap.Error(err))
 		return err
 	}
+	defer file.Close()
+
 	n, err := file.Write(binData)
 	if err != nil || n == 0 {
 		//logger.Log.Error("Error in updating file", zap.Error(err))

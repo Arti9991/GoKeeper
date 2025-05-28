@@ -28,12 +28,18 @@ var (
 	VALUES  ($1, $2, $3, $4, $5);`
 	QuerryGet = `SELECT meta_info, data_type, saved_time, sync FROM datainfo 
 	WHERE storage_id = $1;`
+	QuerryGetSync = `SELECT storage_id, meta_info, data_type, saved_time FROM datainfo 
+	WHERE sync = FALSE;`
 	QuerryDrop   = `DROP TABLE datainfo;`
 	QuerryGetAll = `SELECT * FROM datainfo;`
 	QuerryDone   = `UPDATE datainfo SET sync=TRUE
 	WHERE storage_id = $1;`
+	QuerryUndone = `UPDATE datainfo SET sync=FALSE
+	WHERE storage_id = $1;`
 	QuerryUpdate = `UPDATE datainfo SET meta_info=$2, data_type=$3, saved_time=$4, sync=$5
 	WHERE storage_id = $1;`
+	QuerryDelete = `DELETE FROM datainfo
+  	WHERE storage_id = $1`
 )
 
 func DbInit(DBInfo string) (*DBStor, error) {
@@ -89,6 +95,7 @@ func (db *DBStor) ShowTable() error {
 	if err != nil {
 		return err
 	}
+	defer rows.Close()
 	fmt.Printf("%-10s %-64s %-25s %-10s %-40s %-6v\n", "ID", "StorageID", "MetaInfo", "Type", "SaveTime", "Sync")
 	for rows.Next() {
 		err = rows.Scan(&id, &StorageID, &Jr.MetaInfo, &Jr.DataType, &Jr.SaveTime, &sended)
@@ -103,7 +110,7 @@ func (db *DBStor) ShowTable() error {
 }
 
 // Save сохранение полученных значений в таблицу SQL.
-func (db *DBStor) SaveNew(StorageID string, Jr clientmodels.JournalInfo) error {
+func (db *DBStor) SaveNew(StorageID string, Jr clientmodels.NewerData) error {
 
 	var err error
 	_, err = db.Db.Exec(QuerrySave, StorageID, Jr.MetaInfo, Jr.DataType, Jr.SaveTime, false)
@@ -135,7 +142,19 @@ func (db *DBStor) MarkDone(StorageID string) error {
 }
 
 // Save сохранение полученных значений в таблицу SQL.
-func (db *DBStor) UpdateInfoNewer(StorageID string, Jr clientmodels.JournalInfo) error {
+func (db *DBStor) MarkUnDone(StorageID string) error {
+
+	var err error
+	_, err = db.Db.Exec(QuerryUndone, StorageID)
+	if err != nil {
+		//db.InFiles = true
+		return err
+	}
+	return nil
+}
+
+// Save сохранение полученных значений в таблицу SQL.
+func (db *DBStor) UpdateInfoNewer(StorageID string, Jr clientmodels.NewerData) error {
 
 	var err error
 	_, err = db.Db.Exec(QuerryUpdate, StorageID, Jr.MetaInfo, Jr.DataType, Jr.SaveTime, true)
@@ -177,4 +196,38 @@ func (db *DBStor) Get(StorageID string) (clientmodels.NewerData, error) {
 	}
 
 	return out, nil
+}
+
+// Get получение значений из таблицы SQL по ключу.
+func (db *DBStor) GetForSync() ([]clientmodels.NewerData, error) {
+
+	var err error
+	var out []clientmodels.NewerData
+
+	rows, err := db.Db.Query(QuerryGetSync)
+	if err != nil {
+		return out, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var val clientmodels.NewerData
+		err = rows.Scan(&val.StorageID, &val.MetaInfo, &val.DataType, &val.SaveTime)
+		if err != nil {
+			return out, err
+		}
+		out = append(out, val)
+	}
+
+	return out, nil
+}
+
+// Get получение значений из таблицы SQL по ключу.
+func (db *DBStor) DeleteData(StorageID string) error {
+	var err error
+	_, err = db.Db.Exec(QuerryDelete, StorageID)
+	if err != nil {
+		return err
+	}
+	return nil
 }

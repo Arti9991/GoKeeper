@@ -1,13 +1,4 @@
-{"level":"info","ts":"Tue, 27 May 2025 19:05:17 MSK","msg":"Logger initialyzed!","In file mode:":true}
-{"level":"info","ts":"Tue, 27 May 2025 19:05:18 MSK","msg":"✓ connected to Users db!"}
-{"level":"info","ts":"Tue, 27 May 2025 19:05:18 MSK","msg":"✓ connected to datainfo db!"}
-{"level":"error","ts":"Tue, 27 May 2025 19:05:18 MSK","msg":"Error in creating directory","error":"mkdir D:/Course/Practicum/GoKeeper/Server/storage/: Cannot create a file when that file already exists."}
-{"level":"info","ts":"Tue, 27 May 2025 19:05:32 MSK","msg":"Recieved new request","Method":"/server.Keeper/SaveData"}
-{"level":"info","ts":"Tue, 27 May 2025 19:44:47 MSK","msg":"Recieved new request","Method":"/server.Keeper/SaveData"}
-{"level":"info","ts":"Tue, 27 May 2025 19:45:08 MSK","msg":"Recieved new request","Method":"/server.Keeper/GiveData"}
-{"level":"info","ts":"Tue, 27 May 2025 19:53:34 MSK","msg":"Recieved new request","Method":"/server.Keeper/GiveData"}
-{"level":"info","ts":"Tue, 27 May 2025 20:02:54 MSK","msg":"Recieved new request","Method":"/server.Keeper/GiveData"}
-{"level":"info","ts":"Tue, 27 May 2025 20:03:19 MSK","msg":"Recieved new request","Method":"/server.Keeper/SaveData"}
-{"level":"info","ts":"Tue, 27 May 2025 20:04:28 MSK","msg":"Recieved new request","Method":"/server.Keeper/GiveData"}
-{"level":"error","ts":"Tue, 27 May 2025 20:04:28 MSK","msg":"Error in get data from datainfo Db","error":"sql: no rows in result set"}
-{"level":"error","ts":"Tue, 27 May 2025 20:04:28 MSK","msg":"Error in get datainfo from DB","error":"sql: no rows in result set"}
+{"level":"info","ts":"Wed, 28 May 2025 13:41:08 MSK","msg":"Logger initialyzed!","In file mode:":true}
+{"level":"info","ts":"Wed, 28 May 2025 13:41:08 MSK","msg":"✓ connected to Users db!"}
+{"level":"info","ts":"Wed, 28 May 2025 13:41:08 MSK","msg":"✓ connected to datainfo db!"}
+{"level":"error","ts":"Wed, 28 May 2025 13:41:08 MSK","msg":"Error in creating directory","error":"mkdir D:/Course/Practicum/GoKeeper/Server/storage/: Cannot create a file when that file already exists."}

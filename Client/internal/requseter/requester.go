@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -15,7 +16,6 @@ import (
 	"github.com/Arti9991/GoKeeper/client/internal/clientmodels"
 	"github.com/Arti9991/GoKeeper/client/internal/dbstor"
 	"github.com/Arti9991/GoKeeper/client/internal/inputfunc"
-	"github.com/Arti9991/GoKeeper/client/internal/journal"
 	pb "github.com/Arti9991/GoKeeper/client/internal/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -87,6 +87,8 @@ func TestLoginRequest(Login string, Password string) error {
 		//logger.Log.Error("SAVE Error in opening file", zap.Error(err))
 		return err
 	}
+	defer file.Close()
+
 	n, err := file.Write([]byte(ans.UserID + "\n"))
 	if err != nil || n == 0 {
 		//logger.Log.Error("Error in saving to file", zap.Error(err))
@@ -117,6 +119,8 @@ func TestRegisterRequest(Login string, Password string) error {
 		//logger.Log.Error("SAVE Error in opening file", zap.Error(err))
 		return err
 	}
+	defer file.Close()
+
 	n, err := file.Write([]byte(ans.UserID + "\n"))
 	if err != nil || n == 0 {
 		//logger.Log.Error("Error in saving to file", zap.Error(err))
@@ -125,8 +129,11 @@ func TestRegisterRequest(Login string, Password string) error {
 	return nil
 }
 
-func SyncRequest() error {
-	//offlineMode := false
+func SyncRequest(req *ReqStruct, offlineMode bool) error {
+
+	if offlineMode {
+		return errors.New("cannot sync in offline mode")
+	}
 
 	var UserID string
 
@@ -137,6 +144,8 @@ func SyncRequest() error {
 		//logger.Log.Error("SAVE Error in opening file", zap.Error(err))
 		return err
 	}
+	defer file.Close()
+
 	reader := bufio.NewReader(file)
 	// Считываем строку текста
 	UserID, err = reader.ReadString('\n')
@@ -146,52 +155,28 @@ func SyncRequest() error {
 	}
 	//Выводим строку
 	UserID = strings.TrimSuffix(UserID, "\n")
-	fmt.Printf("%#v", UserID)
+	fmt.Printf("%#v\n", UserID)
 
-	Jrn, err := journal.JournalGet()
+	SnData, err := req.DBStor.GetForSync()
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
-	fmt.Println(Jrn)
-	// if !offlineMode {
 
-	// }
+	for _, syncPart := range SnData {
+		//fmt.Println(syncPart)
 
-	// for _, JrStr := range Jrn {
-	// 	var header metadata.MD
-	// 	md := metadata.New(map[string]string{"UserID": UserID})
-	// 	ctx := metadata.NewOutgoingContext(context.Background(), md)
-
-	// 	dial, err := grpc.NewClient(":8082", grpc.WithTransportCredentials(insecure.NewCredentials())) //":8082"
-	// 	if err != nil {
-	// 		log.Fatal(err)
-	// 	}
-	// 	CurrTime := time.Now().Format(time.RFC850)
-	// 	req := pb.NewKeeperClient(dial)
-	// 	ans, err := req.SaveData(ctx, &pb.SaveDataRequest{
-	// 		Metainfo: JrStr.MetaInfo,
-	// 		DataType: JrStr.MetaInfo,
-	// 		Time:     JrStr.SaveTime,
-	// 		Data:
-	// 	}, grpc.Header(&header))
-	// 	if err != nil {
-	// 		fmt.Println(err)
-	// 		return err
-	// 	}
-	// }
-	// JrInf := clientmodels.JournalInfo{
-	// 	Opperation: "SAVE",
-	// 	StorageID:  ans.StorageID,
-	// 	DataType:   Type,
-	// 	MetaInfo:   Metainfo,
-	// 	SaveTime:   CurrTime,
-	// }
-
-	// err = journal.JournalSave(JrInf)
-
-	// fmt.Println(ans.StorageID)
-
+		syncPart.Data, err = req.BinStor.GetBinData(syncPart.StorageID)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+		err = SendWithUpdate(syncPart.StorageID, syncPart, req, syncPart.Data)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+	}
 	return nil
 }
 
@@ -220,25 +205,24 @@ func SaveDataRequest(Type string, req *ReqStruct, offlineMode bool) error {
 
 	CurrTime := time.Now().Format(time.RFC850)
 
-	JrInf := clientmodels.JournalInfo{
-		Opperation: "SAVE",
-		StorageID:  StorageID,
-		DataType:   Type,
-		MetaInfo:   Metainfo,
-		SaveTime:   CurrTime,
-		Sync:       false,
+	DtInf := clientmodels.NewerData{
+		StorageID: StorageID,
+		DataType:  Type,
+		MetaInfo:  Metainfo,
+		SaveTime:  CurrTime,
+		Data:      data,
 	}
 
 	//err = journal.JournalSave(JrInf)
 
-	//err = db.ReinitTable()
+	// err = req.DBStor.ReinitTable()
 	// fmt.Println(err)
 
-	err = req.DBStor.SaveNew(StorageID, JrInf)
+	err = req.DBStor.SaveNew(StorageID, DtInf)
 	fmt.Println(err)
 
 	if !offlineMode {
-		err = SendWithUpdate(StorageID, JrInf, req, data)
+		err = SendWithUpdate(StorageID, DtInf, req, data)
 		if err != nil {
 			fmt.Println(err)
 			return err
@@ -251,20 +235,48 @@ func SaveDataRequest(Type string, req *ReqStruct, offlineMode bool) error {
 
 func GetDataRequest(StorageID string, req *ReqStruct, offlineMode bool) error {
 	var ans clientmodels.NewerData
+	var ansOn clientmodels.NewerData
+	var ansOf clientmodels.NewerData
 	var err error
+	var err2 error
 
 	fmt.Println(offlineMode)
 
-	if !offlineMode {
-		ans, err = GetDataOnline(StorageID)
+	ansOf, err = GetDataOfline(StorageID, req)
+	if err != nil {
+		fmt.Println(err)
+		return err
 	}
-	if offlineMode || err != nil {
-		ans, err = GetDataOfline(StorageID, req)
+
+	TimeLoc, err := time.Parse(time.RFC850, ansOf.SaveTime)
+	if err != nil {
+		fmt.Println(err)
+	}
+	if !offlineMode {
+		ansOn, err2 = GetDataOnline(StorageID)
+		fmt.Println(err2)
+		timeServ, err := time.Parse(time.RFC850, ansOn.SaveTime)
 		if err != nil {
 			fmt.Println(err)
-			return err
+		}
+		if timeServ.After(TimeLoc) {
+			err = req.DBStor.MarkUnDone(StorageID)
+			if err != nil {
+				fmt.Println(err)
+			}
 		}
 	}
+	if offlineMode || err2 != nil {
+		ans = ansOf
+	} else {
+		ans = ansOn
+	}
+	// Не обноваляется дата в локальном хранилище при получении более новой через sync
+	///////////////////////////
+	/////////////////////////
+	///////////////////////
+	///////////////////
+	/////////////
 	err = inputfunc.ParceAnswer(ans.Data, StorageID, ans.DataType, ans.MetaInfo)
 	if err != nil {
 		fmt.Println(err)
@@ -284,6 +296,8 @@ func GetDataOnline(StorageID string) (clientmodels.NewerData, error) {
 		//logger.Log.Error("SAVE Error in opening file", zap.Error(err))
 		return DataGet, err
 	}
+	defer file.Close()
+
 	reader := bufio.NewReader(file)
 	// Считываем строку текста
 	UserID, err = reader.ReadString('\n')
@@ -317,6 +331,7 @@ func GetDataOnline(StorageID string) (clientmodels.NewerData, error) {
 	DataGet.DataType = ans.DataType
 	DataGet.MetaInfo = ans.Metainfo
 	DataGet.StorageID = StorageID
+	DataGet.SaveTime = ans.Time
 	return DataGet, nil
 }
 
@@ -335,4 +350,72 @@ func GetDataOfline(StorageID string, req *ReqStruct) (clientmodels.NewerData, er
 		return DataGet, err
 	}
 	return DataGet, nil
+}
+
+func DeleteDataRequest(StorageID string, req *ReqStruct, offlineMode bool) error {
+
+	var err error
+
+	fmt.Println(offlineMode)
+
+	if !offlineMode {
+		err = DeleteDataOnline(StorageID)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+
+	err = req.DBStor.DeleteData(StorageID)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	err = req.BinStor.RemoveBinData(StorageID)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return nil
+}
+
+func DeleteDataOnline(StorageID string) error {
+
+	fmt.Println("Open token")
+	file, err := os.Open("./Token.txt")
+	if err != nil {
+		fmt.Println(err)
+		//logger.Log.Error("SAVE Error in opening file", zap.Error(err))
+		return err
+	}
+	defer file.Close()
+
+	reader := bufio.NewReader(file)
+	// Считываем строку текста
+	UserID, err := reader.ReadString('\n')
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	//Выводим строку
+	UserID = strings.TrimSuffix(UserID, "\n")
+	fmt.Printf("%#v", UserID)
+
+	var header metadata.MD
+	md := metadata.New(map[string]string{"UserID": UserID})
+	ctx := metadata.NewOutgoingContext(context.Background(), md)
+
+	dial, err := grpc.NewClient(":8082", grpc.WithTransportCredentials(insecure.NewCredentials())) //":8082"
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	r := pb.NewKeeperClient(dial)
+	_, err = r.DeleteData(ctx, &pb.DeleteDataRequest{
+		StorageID: StorageID,
+	}, grpc.Header(&header))
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return nil
 }
