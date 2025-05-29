@@ -32,7 +32,10 @@ type NewerData struct {
 }
 
 var ErrorInput = errors.New("ошибка ввода")
+var ErrBigData = errors.New("слишком большой размер данных")
+var ErrBigCantSave = errors.New("не удалось сохранить файл")
 var ErrNewerData = errors.New("более новые данные на сервере")
+var ErrNoOfflineList = errors.New("cannot do this in offline")
 
 var TokenFile = "./Token.txt"
 var JournalFile = "./Journal.jl"

@@ -3,17 +3,74 @@ package requseter
 import (
 	"bufio"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/Arti9991/GoKeeper/client/internal/clientmodels"
+	"github.com/Arti9991/GoKeeper/client/internal/inputfunc"
 	pb "github.com/Arti9991/GoKeeper/client/internal/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 )
+
+func SaveDataRequest(Type string, req *ReqStruct, offlineMode bool) error {
+	var Metainfo string
+
+	fmt.Println(offlineMode)
+
+	data, err := inputfunc.ParceInput(Type)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Введите метаинформацию:")
+
+	// открываем потоковое чтение из консоли
+	reader := bufio.NewReader(os.Stdin)
+	// читаем строку из консоли
+	Metainfo, _ = reader.ReadString('\n')
+	strings.TrimSuffix(Metainfo, "\n")
+
+	hashData := sha256.Sum256(data)
+	StorageID := hex.EncodeToString(hashData[:])
+
+	err = req.BinStor.SaveBinData(StorageID, data)
+	fmt.Println(err)
+
+	CurrTime := time.Now().Format(time.RFC850)
+
+	DtInf := clientmodels.NewerData{
+		StorageID: StorageID,
+		DataType:  Type,
+		MetaInfo:  Metainfo,
+		SaveTime:  CurrTime,
+		Data:      data,
+	}
+
+	//err = journal.JournalSave(JrInf)
+
+	// err = req.DBStor.ReinitTable()
+	// fmt.Println(err)
+
+	err = req.DBStor.SaveNew(StorageID, DtInf)
+	fmt.Println(err)
+
+	if !offlineMode {
+		err = SendWithUpdate(StorageID, DtInf, req, data)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+	}
+	//fmt.Println(StorageID)
+
+	return nil
+}
 
 func SendWithUpdate(StorageID string, DtInf clientmodels.NewerData, req *ReqStruct, data []byte) error {
 	fmt.Println("SendWithUpdate")
@@ -76,7 +133,7 @@ func SaveSend(JrInf clientmodels.NewerData, req *ReqStruct, data []byte) (client
 	md := metadata.New(map[string]string{"UserID": UserID})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 
-	dial, err := grpc.NewClient(":8082", grpc.WithTransportCredentials(insecure.NewCredentials())) //":8082"
+	dial, err := grpc.NewClient(req.ServAddr, grpc.WithTransportCredentials(insecure.NewCredentials())) //req.ServAddr
 	if err != nil {
 		log.Fatal(err)
 	}

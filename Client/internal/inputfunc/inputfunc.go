@@ -104,6 +104,25 @@ func ParceInput(Type string) ([]byte, error) {
 		data = []byte(txt)
 
 		return data, nil
+	case "BINARY":
+		fmt.Printf("\nВведите путь к файлу для загрузки: ")
+		// открываем потоковое чтение из консоли
+		reader := bufio.NewReader(os.Stdin)
+		// читаем строку из консоли
+		path, err := reader.ReadString('\n')
+		path = strings.TrimSuffix(path, "\n")
+		path = strings.TrimSuffix(path, "\r")
+		fmt.Printf("%#v\n", path)
+
+		data, err := os.ReadFile(path)
+		if err != nil {
+			fmt.Println(err)
+			return nil, clientmodels.ErrorInput
+		}
+		if len(data) > 4194304 {
+			return nil, clientmodels.ErrBigData
+		}
+		return data, nil
 	default:
 		return nil, clientmodels.ErrorInput
 	}
@@ -147,6 +166,24 @@ func ParceAnswer(Data []byte, storageID string, Type string, Metainfo string) er
 		fmt.Println(Metainfo)
 
 		fmt.Printf("Saved text info: \n%s\n", string(Data))
+		return nil
+	case "BINARY":
+		fmt.Printf("\nВведите путь к файлу для сохранения: ")
+		// открываем потоковое чтение из консоли
+		reader := bufio.NewReader(os.Stdin)
+		// читаем строку из консоли
+		path, err := reader.ReadString('\n')
+		path = strings.TrimSuffix(path, "\n")
+		path = strings.TrimSuffix(path, "\r")
+		fmt.Printf("%#v\n", path)
+
+		err = os.WriteFile(path, Data, 0644)
+		if err != nil {
+			fmt.Println(err)
+			return clientmodels.ErrBigCantSave
+		}
+
+		fmt.Printf("Файл сохранен в: %s\n", path)
 		return nil
 	}
 	return nil

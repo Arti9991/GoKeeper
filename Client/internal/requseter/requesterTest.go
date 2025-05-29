@@ -150,13 +150,3 @@ func TestGetDataRequest(StorageID string) error {
 	}
 	return nil
 }
-
-func ShowData(req *ReqStruct) error {
-	err := req.DBStor.ShowTable()
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-
-	return nil
-}

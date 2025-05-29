@@ -53,6 +53,8 @@ var (
 	buildCommit  string = "HEAD"
 )
 
+var ServAddr string
+
 var rootCmd = &cobra.Command{
 	Use:   "Keeper client",
 	Short: "Client for GoKeeper service",
@@ -70,8 +72,6 @@ var versionCmd = &cobra.Command{
 	Long:  `Print the version number of Keeper`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Printf("Client build version: %s\n", buildVersion)
-		fmt.Printf("Client build date: %s\n", buildDate)
-		fmt.Printf("Client build commit: %s\n", buildCommit)
 	},
 }
 
@@ -81,7 +81,8 @@ var userLogin = &cobra.Command{
 	Long:  `Login user. Where 1st your login and 2nd your password`,
 	Args:  cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
-		requseter.TestLoginRequest(args[0], args[1])
+		req := requseter.NewRequester(viper.GetString("addr"))
+		requseter.LoginRequest(args[0], args[1], req)
 	},
 }
 
@@ -91,7 +92,18 @@ var userRegister = &cobra.Command{
 	Long:  `Register user. Where 1st your login and 2nd your password`,
 	Args:  cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
-		requseter.TestRegisterRequest(args[0], args[1])
+		req := requseter.NewRequester(viper.GetString("addr"))
+		requseter.RegisterRequest(args[0], args[1], req)
+	},
+}
+
+var userLogout = &cobra.Command{
+	Use:   "logout",
+	Short: "logout user",
+	Long:  `logout user`,
+	Run: func(cmd *cobra.Command, args []string) {
+		req := requseter.NewRequester(viper.GetString("addr"))
+		requseter.LogoutRequest(req)
 	},
 }
 
@@ -101,7 +113,7 @@ var saveData = &cobra.Command{
 	Long:  `Save users data. Where 1st is data type (AUTH,CARD,TEXT,BINARY)`,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		req := requseter.NewRequester(":8082")
+		req := requseter.NewRequester(viper.GetString("addr"))
 		requseter.SaveDataRequest(args[0], req, viper.GetBool("offlineMode"))
 	},
 }
@@ -112,18 +124,28 @@ var getData = &cobra.Command{
 	Long:  `Get users data. Where 1st is data ID`,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		req := requseter.NewRequester(":8082")
+		req := requseter.NewRequester(viper.GetString("addr"))
 		requseter.GetDataRequest(args[0], req, viper.GetBool("offlineMode"))
 	},
 }
 
-var showTable = &cobra.Command{
-	Use:   "show",
-	Short: "show users data",
+var showTableLoc = &cobra.Command{
+	Use:   "showLoc",
+	Short: "show local users data",
 	Long:  `show users data`,
 	Run: func(cmd *cobra.Command, args []string) {
-		req := requseter.NewRequester(":8082")
-		requseter.ShowData(req)
+		req := requseter.NewRequester(viper.GetString("addr"))
+		requseter.ShowDataLoc(req)
+	},
+}
+
+var showTableOn = &cobra.Command{
+	Use:   "showOn",
+	Short: "show online users data",
+	Long:  `show users data`,
+	Run: func(cmd *cobra.Command, args []string) {
+		req := requseter.NewRequester(viper.GetString("addr"))
+		requseter.ShowDataOn(req, viper.GetBool("offlineMode"))
 	},
 }
 
@@ -132,7 +154,7 @@ var syncData = &cobra.Command{
 	Short: "Sync users data",
 	Long:  `Sync users data`,
 	Run: func(cmd *cobra.Command, args []string) {
-		req := requseter.NewRequester(":8082")
+		req := requseter.NewRequester(viper.GetString("addr"))
 		requseter.SyncRequest(req, viper.GetBool("offlineMode"))
 	},
 }
@@ -143,8 +165,18 @@ var deleteData = &cobra.Command{
 	Long:  `delete users data`,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		req := requseter.NewRequester(":8082")
+		req := requseter.NewRequester(viper.GetString("addr"))
 		requseter.DeleteDataRequest(args[0], req, viper.GetBool("offlineMode"))
+	},
+}
+var updateData = &cobra.Command{
+	Use:   "update",
+	Short: "update users data",
+	Long:  `update users data`,
+	Args:  cobra.ExactArgs(2),
+	Run: func(cmd *cobra.Command, args []string) {
+		req := requseter.NewRequester(viper.GetString("addr"))
+		requseter.UpdateDataRequest(args[0], args[1], req, viper.GetBool("offlineMode"))
 	},
 }
 
@@ -157,18 +189,23 @@ func StartCLI() {
 }
 
 func init() {
+	rootCmd.PersistentFlags().StringVarP(&ServAddr, "addr", "a", ":8082", "Server address")
+	_ = viper.BindPFlag("addr", rootCmd.PersistentFlags().Lookup("addr"))
 	// Добавляем глобальный флаг к root-команде
 	rootCmd.PersistentFlags().Bool("offlineMode", false, "Работа в офлайн режиме")
 	_ = viper.BindPFlag("offlineMode", rootCmd.PersistentFlags().Lookup("offlineMode"))
 
 	rootCmd.AddCommand(userLogin)
 	rootCmd.AddCommand(userRegister)
+	rootCmd.AddCommand(userLogout)
 	rootCmd.AddCommand(saveData)
 	rootCmd.AddCommand(getData)
 	rootCmd.AddCommand(syncData)
-	rootCmd.AddCommand(showTable)
+	rootCmd.AddCommand(showTableLoc)
+	rootCmd.AddCommand(showTableOn)
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(deleteData)
+	rootCmd.AddCommand(updateData)
 
 	// rootCmd.AddCommand(listCmd)
 	// rootCmd.AddCommand(deleteCmd)
