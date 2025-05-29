@@ -1,5 +1,0 @@
-{"level":"info","ts":"Thu, 29 May 2025 18:06:09 MSK","msg":"Logger initialyzed!","In file mode:":true}
-{"level":"info","ts":"Thu, 29 May 2025 18:06:09 MSK","msg":"✓ connected to Users db!"}
-{"level":"info","ts":"Thu, 29 May 2025 18:06:09 MSK","msg":"✓ connected to datainfo db!"}
-{"level":"error","ts":"Thu, 29 May 2025 18:06:09 MSK","msg":"Error in creating directory","error":"mkdir D:/Course/Practicum/GoKeeper/Server/storage/: Cannot create a file when that file already exists."}
-{"level":"info","ts":"Thu, 29 May 2025 18:06:12 MSK","msg":"Recieved new request","Method":"/server.Keeper/Loginuser"}
