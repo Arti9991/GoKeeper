@@ -9,48 +9,9 @@ import (
 	"github.com/spf13/viper"
 )
 
-// func StartCLI(message string) {
-// 	rootCmd := &cobra.Command{
-// 		Use:   "mycli",
-// 		Short: "My CLI is a simple CLI application built with Cobra and Viper",
-// 	}
-// 	rootCmd.PersistentFlags().StringVarP(&message, "message", "m", "", "A custom message")
-// 	viper.BindPFlag("message", rootCmd.PersistentFlags().Lookup("message"))
-// 	viper.SetDefault("message", "Welcome to my CLI configured with Viper!")
-
-// 	rootCmd.Run = func(cmd *cobra.Command, args []string) {
-// 		message := viper.GetString("message")
-// 		fmt.Println(message)
-// 	}
-
-// 	versionCmd := &cobra.Command{
-// 		Use:   "version",
-// 		Short: "Print the version number of my cli",
-// 		Run: func(cmd *cobra.Command, args []string) {
-// 			fmt.Println("mycli v0.1")
-// 		},
-// 	}
-
-// 	sayHelloCmd := &cobra.Command{
-// 		Use:   "sayhello",
-// 		Short: "Say Hello",
-// 		Run: func(cmd *cobra.Command, args []string) {
-// 			fmt.Println("Hello!")
-// 		},
-// 	}
-
-// 	rootCmd.AddCommand(versionCmd, sayHelloCmd)
-
-// 	if err := rootCmd.Execute(); err != nil {
-// 		fmt.Println(err)
-// 		os.Exit(1)
-// 	}
-// }
-
 var (
-	buildVersion string = "1.0"
-	buildDate    string = "28.05.2025"
-	buildCommit  string = "HEAD"
+	buildVersion string = "1.0.0"
+	buildDate    string = "29.05.2025"
 )
 
 var ServAddr string
@@ -72,6 +33,7 @@ var versionCmd = &cobra.Command{
 	Long:  `Print the version number of Keeper`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Printf("Client build version: %s\n", buildVersion)
+		fmt.Printf("Client build date: %s\n", buildDate)
 	},
 }
 

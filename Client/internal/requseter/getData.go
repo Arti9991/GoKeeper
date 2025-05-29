@@ -13,7 +13,6 @@ import (
 	"github.com/Arti9991/GoKeeper/client/internal/inputfunc"
 	pb "github.com/Arti9991/GoKeeper/client/internal/proto"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -51,7 +50,7 @@ func GetDataRequest(StorageID string, req *ReqStruct, offlineMode bool) error {
 	return err
 }
 
-func GetDataOnline(StorageID string, addr string) (clientmodels.NewerData, error) {
+func GetDataOnline(StorageID string, addr string, req *ReqStruct) (clientmodels.NewerData, error) {
 	var DataGet clientmodels.NewerData
 	var UserID string
 
@@ -79,13 +78,13 @@ func GetDataOnline(StorageID string, addr string) (clientmodels.NewerData, error
 	md := metadata.New(map[string]string{"UserID": UserID})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 
-	dial, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials())) //":8082"
+	dial, err := grpc.NewClient(addr, grpc.WithTransportCredentials(req.Creds)) //":8082"
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	req := pb.NewKeeperClient(dial)
-	ans, err := req.GiveData(ctx, &pb.GiveDataRequest{
+	r := pb.NewKeeperClient(dial)
+	ans, err := r.GiveData(ctx, &pb.GiveDataRequest{
 		StorageID: StorageID,
 	}, grpc.Header(&header))
 	if err != nil {
@@ -122,7 +121,7 @@ func CompareGetData(StorageID string, TimeLoc time.Time, req *ReqStruct) (client
 	var ansOn clientmodels.NewerData
 	var err error
 
-	ansOn, err = GetDataOnline(StorageID, req.ServAddr)
+	ansOn, err = GetDataOnline(StorageID, req.ServAddr, req)
 	if err != nil {
 		fmt.Println(err)
 		return ansOn, err

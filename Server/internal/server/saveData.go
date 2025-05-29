@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Arti9991/GoKeeper/server/internal/coder"
 	"github.com/Arti9991/GoKeeper/server/internal/logger"
 	"github.com/Arti9991/GoKeeper/server/internal/server/interceptors"
 	pb "github.com/Arti9991/GoKeeper/server/internal/server/proto"
@@ -29,12 +30,18 @@ func (s *Server) SaveData(ctx context.Context, in *pb.SaveDataRequest) (*pb.Save
 
 	StorageID := in.StorageID
 
-	fmt.Println(StorageID)
-	fmt.Println(len(StorageID))
+	fmt.Println(in.Data)
+	encData, err := coder.Encrypt(in.Data)
+	if err != nil {
+		logger.Log.Error("Error in encoding data.", zap.Error(err))
+		return &res, status.Error(codes.Aborted, `Ошибка в кодировании данных на сервере`)
+	}
+
+	fmt.Println(encData)
 	// заполняем структуру для сохранени данных
 	var SaveDataInfo servermodels.SaveDataInfo
-	SaveDataInfo.Data = in.Data
-	SaveDataInfo.StorageID = StorageID
+	SaveDataInfo.Data = encData
+	SaveDataInfo.StorageID = in.StorageID
 	SaveDataInfo.Type = in.DataType
 	SaveDataInfo.MetaInfo = in.Metainfo
 	SaveDataInfo.SaveTime, err = time.Parse(time.RFC850, in.Time)
@@ -82,9 +89,9 @@ func (s *Server) SaveData(ctx context.Context, in *pb.SaveDataRequest) (*pb.Save
 	// то ставим флаг что пришедшие данные не устарели
 	res.IsOutdated = false
 	// и сохраняем данные в бинарное хранилище
-	err = s.BinStorFunc.SaveBinData(UserInfo.UserID, StorageID, SaveDataInfo.Data)
-	if err != nil {
-		logger.Log.Error("Error in saving binary data", zap.Error(err))
+	err2 := s.BinStorFunc.SaveBinData(UserInfo.UserID, StorageID, SaveDataInfo.Data)
+	if err2 != nil {
+		logger.Log.Error("Error in saving binary data", zap.Error(err2))
 		return &res, status.Error(codes.Aborted, `Ошибка в сохранении бинарных данных`)
 	}
 

@@ -13,7 +13,6 @@ import (
 	"github.com/Arti9991/GoKeeper/client/internal/inputfunc"
 	pb "github.com/Arti9991/GoKeeper/client/internal/proto"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -93,7 +92,7 @@ func UpdateDataOnline(DtInf clientmodels.NewerData, req *ReqStruct) error {
 	md := metadata.New(map[string]string{"UserID": UserID})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 
-	dial, err := grpc.NewClient(req.ServAddr, grpc.WithTransportCredentials(insecure.NewCredentials())) //req.ServAddr
+	dial, err := grpc.NewClient(req.ServAddr, grpc.WithTransportCredentials(req.Creds)) //req.ServAddr
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -119,12 +118,21 @@ func UpdateDataOfline(DtInf clientmodels.NewerData, req *ReqStruct) error {
 
 	err = req.DBStor.UpdateInfo(DtInf.StorageID, DtInf)
 	if err != nil {
-		return err
+		if err == clientmodels.ErrNoSuchRows {
+			err2 := req.DBStor.SaveNew(DtInf.StorageID, DtInf)
+			if err2 != nil {
+				return err2
+			}
+		} else {
+			return err
+		}
 	}
 
 	err = req.BinStor.UpdateBinData(DtInf.StorageID, DtInf.Data)
 	if err != nil {
-		return err
+		fmt.Println(err)
+		err2 := req.BinStor.SaveBinData(DtInf.StorageID, DtInf.Data)
+		return err2
 	}
 	return nil
 }

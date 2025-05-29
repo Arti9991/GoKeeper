@@ -167,8 +167,7 @@ func (db *DBStor) UpdateInfoNewer(StorageID string, Jr clientmodels.NewerData) e
 // Save сохранение полученных значений в таблицу SQL.
 func (db *DBStor) UpdateInfo(StorageID string, Jr clientmodels.NewerData) error {
 
-	var err error
-	_, err = db.Db.Exec(QuerryUpdate, StorageID, Jr.MetaInfo, Jr.DataType, Jr.SaveTime, false)
+	res, err := db.Db.Exec(QuerryUpdate, StorageID, Jr.MetaInfo, Jr.DataType, Jr.SaveTime, false)
 	if err != nil {
 		if strings.Contains(err.Error(), "23505") {
 			return err
@@ -176,6 +175,13 @@ func (db *DBStor) UpdateInfo(StorageID string, Jr clientmodels.NewerData) error 
 			//db.InFiles = true
 			return err
 		}
+	}
+
+	n, err := res.RowsAffected()
+	if err != nil {
+		return err
+	} else if n == 0 {
+		return clientmodels.ErrNoSuchRows
 	}
 	return nil
 }

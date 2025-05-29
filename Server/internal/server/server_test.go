@@ -25,6 +25,7 @@ import (
 // для базовых тестов производится генерация моков командой ниже
 // mockgen --source=./internal/storage/pgstor/pgStor.go --destination=./internal/server/mocks/mocks_datainfo.go --package=mocks InfoStorage
 // mockgen --source=./internal/storage/pgstor/pgStorUsers.go --destination=./internal/server/mocks/mocks_users.go --package=mocks UserStor
+// mockgen --source=./internal/storage/binstor/binstor.go --destination=./internal/server/mocks/mocks_bin.go --package=mocks BinStrorFunc
 
 func InitServerTest(UserStor pgstor.UserStor, InfoStor pgstor.InfoStorage) *Server {
 	Serv := new(Server)

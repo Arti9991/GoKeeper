@@ -16,11 +16,10 @@ import (
 	"github.com/Arti9991/GoKeeper/client/internal/journal"
 	pb "github.com/Arti9991/GoKeeper/client/internal/proto"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 )
 
-func TestSaveDataRequest(Type string) error {
+func TestSaveDataRequest(Type string, req *ReqStruct) error {
 	//offlineMode := false
 
 	var UserID string
@@ -62,13 +61,13 @@ func TestSaveDataRequest(Type string) error {
 	md := metadata.New(map[string]string{"UserID": UserID})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 
-	dial, err := grpc.NewClient(":8082", grpc.WithTransportCredentials(insecure.NewCredentials())) //":8082"
+	dial, err := grpc.NewClient(":8082", grpc.WithTransportCredentials(req.Creds)) //":8082"
 	if err != nil {
 		log.Fatal(err)
 	}
 	CurrTime := time.Now().Format(time.RFC850)
-	req := pb.NewKeeperClient(dial)
-	ans, err := req.SaveData(ctx, &pb.SaveDataRequest{
+	r := pb.NewKeeperClient(dial)
+	ans, err := r.SaveData(ctx, &pb.SaveDataRequest{
 		Metainfo: Metainfo,
 		DataType: Type,
 		Time:     CurrTime,
@@ -94,7 +93,7 @@ func TestSaveDataRequest(Type string) error {
 	return nil
 }
 
-func TestGetDataRequest(StorageID string) error {
+func TestGetDataRequest(StorageID string, req *ReqStruct) error {
 	var UserID string
 
 	fmt.Println("Open token")
@@ -119,13 +118,13 @@ func TestGetDataRequest(StorageID string) error {
 	md := metadata.New(map[string]string{"UserID": UserID})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 
-	dial, err := grpc.NewClient(":8082", grpc.WithTransportCredentials(insecure.NewCredentials())) //":8082"
+	dial, err := grpc.NewClient(":8082", grpc.WithTransportCredentials(req.Creds)) //":8082"
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	req := pb.NewKeeperClient(dial)
-	ans, err := req.GiveData(ctx, &pb.GiveDataRequest{
+	r := pb.NewKeeperClient(dial)
+	ans, err := r.GiveData(ctx, &pb.GiveDataRequest{
 		StorageID: StorageID,
 	}, grpc.Header(&header))
 	if err != nil {

@@ -3,8 +3,10 @@ package requseter
 import (
 	"bufio"
 	"context"
+	"crypto/x509"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -14,13 +16,14 @@ import (
 	"github.com/Arti9991/GoKeeper/client/internal/dbstor"
 	pb "github.com/Arti9991/GoKeeper/client/internal/proto"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/credentials"
 )
 
 type ReqStruct struct {
 	ServAddr string
 	BinStor  *binstor.BinStor
 	DBStor   *dbstor.DBStor
+	Creds    credentials.TransportCredentials
 }
 
 func NewRequester(addr string) *ReqStruct {
@@ -35,15 +38,31 @@ func NewRequester(addr string) *ReqStruct {
 		fmt.Println(err)
 	}
 
+	// Загружаем сертификат, которому доверяем (тот, что сгенерирован на сервере)
+	caCert, err := ioutil.ReadFile("server.crt")
+	if err != nil {
+
+	}
+
+	// Создаём пул корневых сертификатов и добавляем туда server.crt
+	certPool := x509.NewCertPool()
+	if !certPool.AppendCertsFromPEM(caCert) {
+		log.Fatalf("Failed to add server.crt to cert pool")
+	}
+
+	// Настраиваем TLS
+	ReqStruct.Creds = credentials.NewClientTLSFromCert(certPool, "localhost") // CN должен совпадать с /CN= в server.crt
+
 	return ReqStruct
 }
 
 func TestLogin(req *ReqStruct) error {
 	ctx := context.Background()
 
-	dial, err := grpc.NewClient(req.ServAddr, grpc.WithTransportCredentials(insecure.NewCredentials())) //req.ServAddr
+	dial, err := grpc.NewClient(req.ServAddr, grpc.WithTransportCredentials(req.Creds)) //req.ServAddr
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
+		return err
 	}
 
 	r := pb.NewKeeperClient(dial)
@@ -52,6 +71,7 @@ func TestLogin(req *ReqStruct) error {
 		UserPassword: "123456789",
 	})
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 
@@ -63,9 +83,10 @@ func LoginRequest(Login string, Password string, req *ReqStruct) error {
 
 	ctx := context.Background()
 
-	dial, err := grpc.NewClient(req.ServAddr, grpc.WithTransportCredentials(insecure.NewCredentials())) //req.ServAddr
+	dial, err := grpc.NewClient(req.ServAddr, grpc.WithTransportCredentials(req.Creds)) //req.ServAddr
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
+		return err
 	}
 	r := pb.NewKeeperClient(dial)
 	ans, err := r.Loginuser(ctx, &pb.LoginRequest{
@@ -73,20 +94,21 @@ func LoginRequest(Login string, Password string, req *ReqStruct) error {
 		UserPassword: Password,
 	})
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 
 	fmt.Println(ans.UserID)
 	file, err := os.OpenFile("./Token.txt", os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
-		//logger.Log.Error("SAVE Error in opening file", zap.Error(err))
+		fmt.Println(err)
 		return err
 	}
 	defer file.Close()
 
 	n, err := file.Write([]byte(ans.UserID + "\n"))
 	if err != nil || n == 0 {
-		//logger.Log.Error("Error in saving to file", zap.Error(err))
+		fmt.Println(err)
 		return err
 	}
 	return nil
@@ -95,7 +117,7 @@ func LoginRequest(Login string, Password string, req *ReqStruct) error {
 func RegisterRequest(Login string, Password string, req *ReqStruct) error {
 	ctx := context.Background()
 
-	dial, err := grpc.NewClient(req.ServAddr, grpc.WithTransportCredentials(insecure.NewCredentials())) //req.ServAddr
+	dial, err := grpc.NewClient(req.ServAddr, grpc.WithTransportCredentials(req.Creds)) //req.ServAddr
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -105,6 +127,7 @@ func RegisterRequest(Login string, Password string, req *ReqStruct) error {
 		UserPassword: Password,
 	})
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 
@@ -112,6 +135,7 @@ func RegisterRequest(Login string, Password string, req *ReqStruct) error {
 	file, err := os.OpenFile("./Token.txt", os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		//logger.Log.Error("SAVE Error in opening file", zap.Error(err))
+		fmt.Println(err)
 		return err
 	}
 	defer file.Close()
@@ -129,17 +153,20 @@ func LogoutRequest(req *ReqStruct) error {
 
 	err = req.DBStor.ReinitTable()
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 
-	err = os.Remove(clientmodels.StorageDir)
+	err = os.RemoveAll(clientmodels.StorageDir)
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 	err = os.Mkdir(clientmodels.StorageDir, 0644)
 
 	err = os.Remove("./Token.txt")
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 

@@ -10,7 +10,6 @@ import (
 
 	pb "github.com/Arti9991/GoKeeper/client/internal/proto"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -21,7 +20,7 @@ func DeleteDataRequest(StorageID string, req *ReqStruct, offlineMode bool) error
 	fmt.Println(offlineMode)
 
 	if !offlineMode {
-		err = DeleteDataOnline(StorageID, req.ServAddr)
+		err = DeleteDataOnline(StorageID, req.ServAddr, req)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -40,7 +39,7 @@ func DeleteDataRequest(StorageID string, req *ReqStruct, offlineMode bool) error
 	return nil
 }
 
-func DeleteDataOnline(StorageID string, addr string) error {
+func DeleteDataOnline(StorageID string, addr string, req *ReqStruct) error {
 
 	fmt.Println("Open token")
 	file, err := os.Open("./Token.txt")
@@ -66,7 +65,7 @@ func DeleteDataOnline(StorageID string, addr string) error {
 	md := metadata.New(map[string]string{"UserID": UserID})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 
-	dial, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials())) //req.ServAddr
+	dial, err := grpc.NewClient(addr, grpc.WithTransportCredentials(req.Creds)) //req.ServAddr
 	if err != nil {
 		log.Fatal(err)
 	}

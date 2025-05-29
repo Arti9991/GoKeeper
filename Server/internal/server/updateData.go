@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Arti9991/GoKeeper/server/internal/coder"
 	"github.com/Arti9991/GoKeeper/server/internal/logger"
 	"github.com/Arti9991/GoKeeper/server/internal/server/interceptors"
 	pb "github.com/Arti9991/GoKeeper/server/internal/server/proto"
@@ -24,8 +25,15 @@ func (s *Server) UpdateData(ctx context.Context, in *pb.UpdateDataRequest) (*pb.
 		return &res, status.Errorf(codes.Aborted, `Пользователь не авторизован`)
 	}
 
+	fmt.Println(in.Data)
+	encData, err := coder.Encrypt(in.Data)
+	if err != nil {
+		logger.Log.Error("Error in encoding data.", zap.Error(err))
+		return &res, status.Error(codes.Aborted, `Ошибка в кодировании данных на сервере`)
+	}
+
 	var SaveDataInfo servermodels.SaveDataInfo
-	SaveDataInfo.Data = in.Data
+	SaveDataInfo.Data = encData
 	SaveDataInfo.StorageID = in.StorageID
 	SaveDataInfo.Type = in.DataType
 	SaveDataInfo.MetaInfo = in.Metainfo

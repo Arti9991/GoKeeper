@@ -1,6 +1,7 @@
 package server
 
 import (
+	"crypto/tls"
 	"fmt"
 	"log"
 	"net"
@@ -13,6 +14,7 @@ import (
 	"github.com/Arti9991/GoKeeper/server/internal/storage/pgstor"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 type Server struct {
@@ -61,6 +63,18 @@ func InitServer() *Server {
 func RunServer() error {
 	server := InitServer()
 
+	cert, err := tls.LoadX509KeyPair("server.crt", "server.key")
+	if err != nil {
+		log.Fatalf("Failed to load server certificate: %v", err)
+	}
+
+	// Настройки TLS
+	config := &tls.Config{
+		Certificates: []tls.Certificate{cert},
+	}
+
+	creds := credentials.NewTLS(config)
+
 	fmt.Println("Host addr", server.Config.HostAddr)
 	// определяем адрес для сервера
 	listen, err := net.Listen("tcp", server.Config.HostAddr)
@@ -69,7 +83,7 @@ func RunServer() error {
 	}
 	// создаём gRPC-сервер без зарегистрированной службы
 	interceptors := grpc.ChainUnaryInterceptor(interceptors.AtuhInterceptor, interceptors.LoggingInterceptor)
-	s := grpc.NewServer(interceptors)
+	s := grpc.NewServer(grpc.Creds(creds), interceptors)
 
 	proto.RegisterKeeperServer(s, server)
 

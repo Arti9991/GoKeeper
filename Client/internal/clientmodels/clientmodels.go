@@ -36,6 +36,7 @@ var ErrBigData = errors.New("слишком большой размер данн
 var ErrBigCantSave = errors.New("не удалось сохранить файл")
 var ErrNewerData = errors.New("более новые данные на сервере")
 var ErrNoOfflineList = errors.New("cannot do this in offline")
+var ErrNoSuchRows = errors.New("no rows for update")
 
 var TokenFile = "./Token.txt"
 var JournalFile = "./Journal.jl"

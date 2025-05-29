@@ -2,8 +2,10 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"time"
 
+	"github.com/Arti9991/GoKeeper/server/internal/coder"
 	"github.com/Arti9991/GoKeeper/server/internal/logger"
 	"github.com/Arti9991/GoKeeper/server/internal/server/interceptors"
 	pb "github.com/Arti9991/GoKeeper/server/internal/server/proto"
@@ -35,7 +37,15 @@ func (s *Server) GiveData(ctx context.Context, in *pb.GiveDataRequest) (*pb.Give
 		return &res, status.Error(codes.Aborted, `Ошибка в получении данных из хранилища`)
 	}
 
-	res.Data = binData
+	fmt.Println(binData)
+	decData, err := coder.Derypt(binData)
+	if err != nil {
+		logger.Log.Error("Error in decoding data.", zap.Error(err))
+		return &res, status.Error(codes.Aborted, `Ошибка в декодировании данных на сервере`)
+	}
+	fmt.Println(decData)
+
+	res.Data = decData
 	res.DataType = getData.Type
 	res.Metainfo = getData.MetaInfo
 	res.Time = getData.SaveTime.Format(time.RFC850)
