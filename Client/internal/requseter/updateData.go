@@ -35,7 +35,7 @@ func UpdateDataRequest(StorageID string, Type string, req *ReqStruct, offlineMod
 	Metainfo, _ := reader.ReadString('\n')
 	strings.TrimSuffix(Metainfo, "\n")
 
-	CurrTime := time.Now().Format(time.RFC850)
+	CurrTime := time.Now().UTC().Format(time.RFC850)
 
 	DtInf := clientmodels.NewerData{
 		StorageID: StorageID,
@@ -44,17 +44,24 @@ func UpdateDataRequest(StorageID string, Type string, req *ReqStruct, offlineMod
 		SaveTime:  CurrTime,
 		Data:      data,
 	}
-	if !offlineMode {
-		err = UpdateDataOnline(DtInf, req)
-		if err != nil {
-			fmt.Println(err)
-		}
-	}
 
 	err = UpdateDataOfline(DtInf, req)
 	if err != nil {
 		fmt.Println(err)
 		return err
+	}
+
+	if !offlineMode {
+		err2 := UpdateDataOnline(DtInf, req)
+		if err2 != nil {
+			fmt.Println(err2)
+			return err2
+		}
+		err2 = req.DBStor.MarkDone(DtInf.StorageID)
+		if err2 != nil {
+			fmt.Println(err2)
+			return err2
+		}
 	}
 	return nil
 }
@@ -110,7 +117,7 @@ func UpdateDataOnline(DtInf clientmodels.NewerData, req *ReqStruct) error {
 func UpdateDataOfline(DtInf clientmodels.NewerData, req *ReqStruct) error {
 	var err error
 
-	err = req.DBStor.UpdateInfoNewer(DtInf.StorageID, DtInf)
+	err = req.DBStor.UpdateInfo(DtInf.StorageID, DtInf)
 	if err != nil {
 		return err
 	}

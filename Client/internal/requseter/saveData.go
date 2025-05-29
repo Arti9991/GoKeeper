@@ -42,7 +42,7 @@ func SaveDataRequest(Type string, req *ReqStruct, offlineMode bool) error {
 	err = req.BinStor.SaveBinData(StorageID, data)
 	fmt.Println(err)
 
-	CurrTime := time.Now().Format(time.RFC850)
+	CurrTime := time.Now().UTC().Format(time.RFC850)
 
 	DtInf := clientmodels.NewerData{
 		StorageID: StorageID,
@@ -150,6 +150,7 @@ func SaveSend(JrInf clientmodels.NewerData, req *ReqStruct, data []byte) (client
 		return NewerData, err
 	}
 	if ans.IsOutdated {
+		fmt.Println("IS OUTDATED")
 		NewerData.Data = ans.ReverseData.Data
 		NewerData.DataType = ans.ReverseData.DataType
 		NewerData.MetaInfo = ans.ReverseData.Metainfo

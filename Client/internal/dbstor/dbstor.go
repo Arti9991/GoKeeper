@@ -165,7 +165,7 @@ func (db *DBStor) UpdateInfoNewer(StorageID string, Jr clientmodels.NewerData) e
 }
 
 // Save сохранение полученных значений в таблицу SQL.
-func (db *DBStor) UpdateInfo(StorageID string, Jr clientmodels.JournalInfo) error {
+func (db *DBStor) UpdateInfo(StorageID string, Jr clientmodels.NewerData) error {
 
 	var err error
 	_, err = db.Db.Exec(QuerryUpdate, StorageID, Jr.MetaInfo, Jr.DataType, Jr.SaveTime, false)
