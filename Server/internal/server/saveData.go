@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 
@@ -16,28 +15,28 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// GetAddr получение исходного URL по укороченному
+// SaveData сохранение полученных данных. При сохранении выполняется проверка: есть на сервере более
+// новые данные (по времени сохранения на клиенте), если есть, то эти данные записываются в ответ.
+// Если данные на сервере устаревшие, то они обновляются. Если данных нет, то происхожит просто сохранение
 func (s *Server) SaveData(ctx context.Context, in *pb.SaveDataRequest) (*pb.SaveDataResponse, error) {
+	// инициализация ответа
 	var res pb.SaveDataResponse
 	res.ReverseData = new(pb.SaveDataResponse_ReverseData)
-
+	// получение UserID из контекста с интерцептора
 	var err error
 	UserInfo := ctx.Value(interceptors.CtxKey).(servermodels.UserInfo)
-
+	// если пользователь не авторизован, сообщаем ему об этом
 	if !UserInfo.Register {
 		return &res, status.Errorf(codes.Aborted, `Пользователь не авторизован`)
 	}
 
-	StorageID := in.StorageID
-
-	fmt.Println(in.Data)
+	// кодируем полученные данные
 	encData, err := coder.Encrypt(in.Data)
 	if err != nil {
 		logger.Log.Error("Error in encoding data.", zap.Error(err))
 		return &res, status.Error(codes.Aborted, `Ошибка в кодировании данных на сервере`)
 	}
 
-	fmt.Println(encData)
 	// заполняем структуру для сохранени данных
 	var SaveDataInfo servermodels.SaveDataInfo
 	SaveDataInfo.Data = encData
@@ -46,6 +45,7 @@ func (s *Server) SaveData(ctx context.Context, in *pb.SaveDataRequest) (*pb.Save
 	SaveDataInfo.MetaInfo = in.Metainfo
 	SaveDataInfo.SaveTime, err = time.Parse(time.RFC850, in.Time)
 	if err != nil {
+		// если при парсинге времени ошибка, то ставим текущее
 		logger.Log.Error("Error in parse time from request setting own time", zap.Error(err))
 		SaveDataInfo.SaveTime = time.Now()
 	}
@@ -55,7 +55,6 @@ func (s *Server) SaveData(ctx context.Context, in *pb.SaveDataRequest) (*pb.Save
 	if err != nil {
 		// если возвращена ошибка, что на сервере данные свежее (по времени)
 		if err == servermodels.ErrNewerData {
-			fmt.Println(getData)
 			// выставляем ответный флаг что на сервере данные свежее
 			res.IsOutdated = true
 			// и получаем обновленные данные из бинарного харнилища
@@ -79,8 +78,10 @@ func (s *Server) SaveData(ctx context.Context, in *pb.SaveDataRequest) (*pb.Save
 			res.ReverseData.Metainfo = getData.MetaInfo
 			res.ReverseData.Time = getData.SaveTime.Format(time.RFC850)
 			res.StorageID = getData.StorageID
+			// отправляем структуру в ответ с соответствующим флагом
 			return &res, nil
 		} else {
+			logger.Log.Error("Error in saving datainfo", zap.Error(err))
 			return &res, status.Error(codes.Aborted, `Ошибка в сохранении информации о данных`)
 		}
 	}
@@ -89,16 +90,13 @@ func (s *Server) SaveData(ctx context.Context, in *pb.SaveDataRequest) (*pb.Save
 	// то ставим флаг что пришедшие данные не устарели
 	res.IsOutdated = false
 	// и сохраняем данные в бинарное хранилище
-	err2 := s.BinStorFunc.SaveBinData(UserInfo.UserID, StorageID, SaveDataInfo.Data)
+	err2 := s.BinStorFunc.SaveBinData(UserInfo.UserID, SaveDataInfo.StorageID, SaveDataInfo.Data)
 	if err2 != nil {
 		logger.Log.Error("Error in saving binary data", zap.Error(err2))
 		return &res, status.Error(codes.Aborted, `Ошибка в сохранении бинарных данных`)
 	}
 
-	fmt.Println(UserInfo.UserID)
-	fmt.Println("Input Data", in.Metainfo)
-
-	res.StorageID = StorageID
+	res.StorageID = SaveDataInfo.StorageID
 
 	return &res, nil
 }

@@ -2,11 +2,13 @@ package binstor
 
 import (
 	"os"
+	"strings"
 
 	"github.com/Arti9991/GoKeeper/server/internal/logger"
 	"go.uber.org/zap"
 )
 
+// интерфеейс для хранилища бинарных данных
 type BinStrorFunc interface {
 	SaveBinData(userID string, storageID string, binData []byte) error
 	UpdateBinData(userID string, storageID string, binData []byte) error
@@ -14,19 +16,27 @@ type BinStrorFunc interface {
 	RemoveBinData(userID string, storageID string) error
 }
 
+// структура с информацией о хранилище бинарных данных
 type BinStor struct {
 	StorageDir string
 }
 
-func NewBinStor(StorageDir string) *BinStor {
-
+// NewBinStor инициализация хранилища
+func NewBinStor(StorageDir string) (*BinStor, error) {
+	// срздаем директорию хранилища, указанную в конфигурации
 	err := os.Mkdir(StorageDir, 0644)
 	if err != nil {
-		logger.Log.Error("Error in creating directory", zap.Error(err))
+		if strings.Contains(err.Error(), "that file already exists") {
+			return &BinStor{StorageDir: StorageDir}, nil
+		} else {
+			logger.Log.Error("Error in creating directory", zap.Error(err))
+			return &BinStor{StorageDir: StorageDir}, err
+		}
 	}
-	return &BinStor{StorageDir: StorageDir}
+	return &BinStor{StorageDir: StorageDir}, nil
 }
 
+// SaveBinData функция сохранения бинарных данных на диск
 func (s *BinStor) SaveBinData(userID string, storageID string, binData []byte) error {
 	// Cохраняем данные на диск
 	//err := os.WriteFile(s.StorageDir+userID+"_"+storageID, binData, 0644)
@@ -46,6 +56,8 @@ func (s *BinStor) SaveBinData(userID string, storageID string, binData []byte) e
 	return nil
 }
 
+// UpdateBinData функция обновления бинарных данных на диске
+// (отличие в том, что если файл уже имеется, его содержимое предварительно очищается)
 func (s *BinStor) UpdateBinData(userID string, storageID string, binData []byte) error {
 
 	// Также сохраняем данные на диск
@@ -65,28 +77,20 @@ func (s *BinStor) UpdateBinData(userID string, storageID string, binData []byte)
 	return nil
 }
 
+// GetBinData функция получения бинарных данных из хранилища
 func (s *BinStor) GetBinData(userID string, storageID string) ([]byte, error) {
 
 	var out []byte
-	// file, err := os.OpenFile(s.StorageDir+userID+"_"+storageID, os.O_RDONLY, 0644)
-	// if err != nil {
-	// 	logger.Log.Error("GET Error in opening file", zap.Error(err))
-	// 	return nil, err
-	// }
 	out, err := os.ReadFile(s.StorageDir + userID + "_" + storageID)
 	if err != nil {
 		logger.Log.Error("Error in reading from file", zap.Error(err))
 		return nil, err
 	}
-	// reader := bufio.NewReader(file)
-	// n, err := reader.ReadAll(out)
-	// if err != nil || n == 0 {
-	// 	logger.Log.Error("Error in reading from file", zap.Error(err))
-	// 	return nil, err
-	// }
+
 	return out, nil
 }
 
+// RemoveBinData функция удаления бинарных данных из хранилища
 func (s *BinStor) RemoveBinData(userID string, storageID string) error {
 
 	err := os.Remove(s.StorageDir + userID + "_" + storageID)

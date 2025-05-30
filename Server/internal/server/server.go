@@ -3,8 +3,6 @@ package server
 import (
 	"context"
 	"crypto/tls"
-	"fmt"
-	"log"
 	"net"
 	"os"
 	"os/signal"
@@ -31,10 +29,12 @@ type Server struct {
 	BinStorFunc binstor.BinStrorFunc
 	Config      config.Config
 	Ctx         context.Context
+	// встраиваем proto
 	proto.UnimplementedKeeperServer
 }
 
-func InitServer(ctx context.Context) *Server {
+// InitServer функция инициализации сервера со всеми основными параметрами
+func InitServer(ctx context.Context) (*Server, error) {
 	var err error
 	Serv := new(Server)
 
@@ -49,23 +49,28 @@ func InitServer(ctx context.Context) *Server {
 	Serv.DBusers, err = pgstor.DBUsersInit(Serv.Config.DBAdr)
 	if err != nil {
 		logger.Log.Error("Error in creating users DB", zap.Error(err))
-		return Serv
+		return Serv, err
 	}
 	Serv.UserStor = Serv.DBusers
 
 	Serv.DBData, err = pgstor.DBDataInit(Serv.Config.DBAdr)
 	if err != nil {
 		logger.Log.Error("Error in creating data DB", zap.Error(err))
-		return Serv
+		return Serv, err
 	}
 	Serv.InfoStor = Serv.DBData
 
-	Serv.BinStor = binstor.NewBinStor(Serv.Config.StorageDir)
+	Serv.BinStor, err = binstor.NewBinStor(Serv.Config.StorageDir)
+	if err != nil {
+		logger.Log.Error("Error in creating binary storage", zap.Error(err))
+		return Serv, err
+	}
 	Serv.BinStorFunc = Serv.BinStor
 
-	return Serv
+	return Serv, nil
 }
 
+// RunServer функция запуска сервера
 func RunServer() error {
 
 	// канал для сообщения о Shutdown
@@ -73,12 +78,17 @@ func RunServer() error {
 	// контекст для ожидания системного сигнала на завершение работы
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-
-	server := InitServer(ctx)
-
+	// инциализация сервера
+	server, err := InitServer(ctx)
+	if err != nil {
+		logger.Log.Error("Error in InitServer")
+		return err
+	}
+	// получение сертификатов для secure mode
 	cert, err := tls.LoadX509KeyPair("server.crt", "server.key")
 	if err != nil {
-		log.Fatalf("Failed to load server certificate: %v", err)
+		logger.Log.Error("Error in load TLS files for secure mode", zap.Error(err))
+		return err
 	}
 
 	// Настройки TLS
@@ -88,22 +98,26 @@ func RunServer() error {
 
 	creds := credentials.NewTLS(config)
 
-	fmt.Println("Host addr", server.Config.HostAddr)
-	// определяем адрес для сервера
+	// определяем адрес для сервера и слушаем его
 	listen, err := net.Listen("tcp", server.Config.HostAddr)
 	if err != nil {
+		logger.Log.Error("Error in listening port!", zap.String("port:", server.Config.HostAddr), zap.Error(err))
 		return err
 	}
-	// создаём gRPC-сервер без зарегистрированной службы
+	// инициализация интерцепторов для логгирования и авторизации
 	interceptors := grpc.ChainUnaryInterceptor(interceptors.AtuhInterceptor, interceptors.LoggingInterceptor)
+	// создаём gRPC-сервер с интерцепторами и протоколами безопасности
 	s := grpc.NewServer(grpc.Creds(creds), interceptors)
-
+	// регистрация обработчика
 	proto.RegisterKeeperServer(s, server)
 
+	logger.Log.Info("Server initialyzed!", zap.String("Address:", server.Config.HostAddr))
+	// запуск горутины на ожидание сигнала о выключении
 	WaitShutdown(server, s, shutCh)
 
-	// получаем запрос gRPC
+	// ожидание запросов в gRPC
 	if err := s.Serve(listen); err != nil {
+		logger.Log.Error("Error in gRPC Serve!", zap.Error(err))
 		return err
 	}
 	// ожидание сообщения о Shutdown
@@ -112,15 +126,17 @@ func RunServer() error {
 	return nil
 }
 
+// WaitShutdown функция с горутиной, ожидающей сигнала об отключении сервера и
+// выполняющей GracefulStop() для gRPC сервера
 func WaitShutdown(server *Server, s *grpc.Server, shutCh chan struct{}) {
 	go func() {
 		var err error
 		<-server.Ctx.Done()
-		// получили сигнал os.Interrupt, запускаем процедуру graceful shutdown
+		// получили сигнал os.Interrupt, запускаем процедуру graceful stop
 		logger.Log.Info("Graceful shutdown...")
 
 		s.GracefulStop()
-
+		// отключаем соединение с базами данных
 		err = server.DBData.DB.Close()
 		if err != nil {
 			logger.Log.Error("Error in closing datainfo Db", zap.Error(err))

@@ -25,6 +25,7 @@ var (
 	WHERE user_login = $1;`
 )
 
+// интерфеейс для базы данных с информацией о пользователях
 type UserStor interface {
 	SaveNewUser(userID string, userLogin string, userPassw string) error
 	GetUser(userLogin string) (string, string, error)
@@ -37,13 +38,15 @@ type DBUsersStor struct {
 	DBInfo string  // информация для подключения к базе
 }
 
-// DBinit инициализация хранилища и создание/подключение к таблице.
+// DBinit инициализация хранилища и создание/подключение к таблице
+// с информацией о пользователях.
 func DBUsersInit(DBInfo string) (*DBUsersStor, error) {
 	var db DBUsersStor
 	var err error
 
 	db.DBInfo = DBInfo
 
+	// открытие соединения с базой
 	db.DB, err = sql.Open("pgx", DBInfo)
 	if err != nil && DBInfo != "" {
 		logger.Log.Error("Error in creating users Db", zap.Error(err))
@@ -51,12 +54,13 @@ func DBUsersInit(DBInfo string) (*DBUsersStor, error) {
 	} else if DBInfo == "" {
 		return &DBUsersStor{}, errors.New("turning off data base mode by command dbinfo = _")
 	}
-
+	// провреям соединение
 	if err = db.DB.Ping(); err != nil {
 		logger.Log.Error("Error in ping users Db", zap.Error(err))
 		return &DBUsersStor{}, err
 	}
 
+	// создание таблицы для информации о пользователях
 	_, err = db.DB.Exec(QuerryCreateUsers)
 	if err != nil {
 		logger.Log.Error("Error in creating users Db", zap.Error(err))
@@ -66,6 +70,7 @@ func DBUsersInit(DBInfo string) (*DBUsersStor, error) {
 	return &db, nil
 }
 
+// SaveNewUser функция сохранения нового пользователя
 func (db *DBUsersStor) SaveNewUser(userID string, userLogin string, userPassw string) error {
 	var err error
 
@@ -82,6 +87,7 @@ func (db *DBUsersStor) SaveNewUser(userID string, userLogin string, userPassw st
 	return nil
 }
 
+// GetUser функция получения информации о пользователе
 func (db *DBUsersStor) GetUser(userLogin string) (string, string, error) {
 	var err error
 	var UID string
@@ -99,6 +105,7 @@ func (db *DBUsersStor) GetUser(userLogin string) (string, string, error) {
 	return UID, pass, nil
 }
 
+// CloseDataDB функция закрытия соединения с базой информации о пользователях
 func (db *DBUsersStor) CloseUsersDB() error {
 	return db.CloseUsersDB()
 }

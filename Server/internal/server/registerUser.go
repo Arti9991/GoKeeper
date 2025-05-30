@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"crypto/rand"
-	"fmt"
 	"time"
 
 	"github.com/Arti9991/GoKeeper/server/internal/server/interceptors"
@@ -14,28 +13,17 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// GetAddr получение исходного URL по укороченному
+// RegisterUser функция для регистрации нового пользователя
 func (s *Server) RegisterUser(ctx context.Context, in *pb.RegisterRequest) (*pb.RegisterResponce, error) {
 	var res pb.RegisterResponce
 
-	// UserInfo := ctx.Value(interceptors.CtxKey).(servermodels.UserInfo)
-	// UserExist := UserInfo.Register
-
-	// if UserExist {
-	// 	return &res, status.Errorf(codes.Aborted, `Пользователь уже авторизован`)
-	// }
-
-	fmt.Println(in.UserLogin)
-	fmt.Println(in.UserPassword)
-
+	// кодируем полученный пароль
 	codedPassw := servermodels.CodePassword(in.UserPassword)
 
-	fmt.Println(codedPassw)
-
+	// создаем UserID
 	UserID := rand.Text()[0:16]
 
-	fmt.Println(UserID)
-
+	// сохраняем нового пользователя в базе данных
 	err := s.UserStor.SaveNewUser(UserID, in.UserLogin, codedPassw)
 	if err != nil {
 		if err == servermodels.ErrorUserAlready {
@@ -45,11 +33,12 @@ func (s *Server) RegisterUser(ctx context.Context, in *pb.RegisterRequest) (*pb.
 		}
 	}
 
+	// создаем JWT токен
 	JWTstr, err := BuildJWTString(UserID)
 	if err != nil {
 		return &res, status.Error(codes.Unavailable, `Ошибка в создании токена`)
 	}
-
+	// отправляем JWT токен в ответ
 	res.UserID = JWTstr
 
 	return &res, nil

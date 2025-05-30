@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// структура с информацией о пользователе
 type UserInfo struct {
 	UserID   string
 	Register bool
@@ -26,6 +27,7 @@ var ErrorNoSuchUser = errors.New("No user with this login")
 var ErrNewerData = errors.New("Newer data at server")
 var ErrorUserAlready = errors.New("This user already exists")
 
+// структура с данными и информацией о них
 type SaveDataInfo struct {
 	UserID    string
 	StorageID string

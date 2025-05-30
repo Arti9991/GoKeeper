@@ -3,10 +3,10 @@ package server
 import (
 	"context"
 	"errors"
-	"fmt"
 	"testing"
 	"time"
 
+	"github.com/Arti9991/GoKeeper/server/internal/coder"
 	"github.com/Arti9991/GoKeeper/server/internal/config"
 	"github.com/Arti9991/GoKeeper/server/internal/logger"
 	"github.com/Arti9991/GoKeeper/server/internal/server/interceptors"
@@ -25,8 +25,9 @@ import (
 // для базовых тестов производится генерация моков командой ниже
 // mockgen --source=./internal/storage/pgstor/pgStor.go --destination=./internal/server/mocks/mocks_datainfo.go --package=mocks InfoStorage
 // mockgen --source=./internal/storage/pgstor/pgStorUsers.go --destination=./internal/server/mocks/mocks_users.go --package=mocks UserStor
-// mockgen --source=./internal/storage/binstor/binstor.go --destination=./internal/server/mocks/mocks_bin.go --package=mocks BinStrorFunc
+// (устарело!)mockgen --source=./internal/storage/binstor/binstor.go --destination=./internal/server/mocks/mocks_bin.go --package=mocks BinStrorFunc
 
+// функция для инциализации тестовой структуры Server
 func InitServerTest(UserStor pgstor.UserStor, InfoStor pgstor.InfoStorage) *Server {
 	Serv := new(Server)
 
@@ -45,28 +46,7 @@ func InitServerTest(UserStor pgstor.UserStor, InfoStor pgstor.InfoStorage) *Serv
 	return Serv
 }
 
-// func RunServerTest() error {
-// 	server := InitServerTest()
-
-// 	fmt.Println("Host addr", server.Config.HostAddr)
-// 	// определяем адрес для сервера
-// 	listen, err := net.Listen("tcp", server.Config.HostAddr)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	// создаём gRPC-сервер без зарегистрированной службы
-// 	interceptors := grpc.ChainUnaryInterceptor(interceptors.AtuhInterceptor, interceptors.LoggingInterceptor)
-// 	s := grpc.NewServer(interceptors)
-
-// 	proto.RegisterKeeperServer(s, server)
-
-// 	// получаем запрос gRPC
-// 	if err := s.Serve(listen); err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	return nil
-// }
-
+// TestRegisterUser тестирование функции регистрации
 func TestRegisterUser(t *testing.T) {
 	// создаём контроллер
 	ctrl := gomock.NewController(t)
@@ -75,7 +55,7 @@ func TestRegisterUser(t *testing.T) {
 	// создаём объект-заглушку
 	mockUsers := mocks.NewMockUserStor(ctrl)
 	mockInfo := mocks.NewMockInfoStorage(ctrl)
-
+	// создаем тестовую структуру
 	serv := InitServerTest(mockUsers, mockInfo)
 
 	type want struct {
@@ -120,30 +100,31 @@ func TestRegisterUser(t *testing.T) {
 			},
 		},
 	}
-
+	// создание заглушки контекста для запросов
 	ctx := context.Background()
 
 	for _, test := range tests {
-		// задаем режим работы моков (для POST главное отсутствие ошибки)
+		// задаем режим работы моков для сохранения пользователя
 		mockUsers.EXPECT().
 			SaveNewUser(gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(test.err).
 			MaxTimes(1)
-
+		// выполняем запрос
 		t.Run(test.Name, func(t *testing.T) {
 			ans, err := serv.RegisterUser(ctx, &pb.RegisterRequest{
 				UserLogin:    test.UserLogin,
 				UserPassword: test.UserPassword,
 			})
-			fmt.Println(err)
 			require.Equal(t, err, test.want.serv_err)
 			if err == nil {
+				// если ошибка нулевая, то должен быть ответ
 				require.NotEmpty(t, ans)
 			}
 		})
 	}
 }
 
+// TestLoginUser тестирование функции логина
 func TestLoginUser(t *testing.T) {
 	// создаём контроллер
 	ctrl := gomock.NewController(t)
@@ -153,6 +134,7 @@ func TestLoginUser(t *testing.T) {
 	mockUsers := mocks.NewMockUserStor(ctrl)
 	mockInfo := mocks.NewMockInfoStorage(ctrl)
 
+	// создаем тестовую структуру
 	serv := InitServerTest(mockUsers, mockInfo)
 
 	type want struct {
@@ -212,30 +194,26 @@ func TestLoginUser(t *testing.T) {
 			},
 		},
 	}
-
-	// устанавливаем соединение с сервером
-	// conn, err := grpc.NewClient(":8081", grpc.WithTransportCredentials(insecure.NewCredentials()))
-	// require.NoError(t, err)
-	// defer conn.Close()
+	// создание заглушки контекста для запросов
 	ctx := context.Background()
 
 	for _, test := range tests {
+		// кодированный пароль, который мы рассчитываем получить
 		codedPass := servermodels.CodePassword(test.GetPassword)
-
+		// задаем режим работы моков для получения пользователя
 		mockUsers.EXPECT().
 			GetUser(gomock.Any()).
 			Return(test.UserID, codedPass, test.err).
 			MaxTimes(1)
-
+			// выполняем запрос
 		t.Run(test.Name, func(t *testing.T) {
-
 			ans, err := serv.Loginuser(ctx, &pb.LoginRequest{
 				UserLogin:    test.UserLogin,
 				UserPassword: test.UserPassword,
 			})
-			fmt.Println(err)
 			require.Equal(t, err, test.want.serv_err)
 			if err == nil {
+				// если ошибка нулевая, то должен быть ответ
 				require.NotEmpty(t, ans)
 			}
 
@@ -243,6 +221,7 @@ func TestLoginUser(t *testing.T) {
 	}
 }
 
+// TestSaveData тестирование функции сохранения данных
 func TestSaveData(t *testing.T) {
 	// создаём контроллер
 	ctrl := gomock.NewController(t)
@@ -252,6 +231,7 @@ func TestSaveData(t *testing.T) {
 	mockUsers := mocks.NewMockUserStor(ctrl)
 	mockInfo := mocks.NewMockInfoStorage(ctrl)
 
+	// создаем тестовую структуру
 	serv := InitServerTest(mockUsers, mockInfo)
 
 	type want struct {
@@ -344,26 +324,28 @@ func TestSaveData(t *testing.T) {
 			},
 		},
 	}
-
+	// создание заглушки контекста для запросов
 	ctx := context.Background()
 
 	for _, test := range tests {
-
+		// задаем режим работы моков для сохранения данных
 		mockInfo.EXPECT().
 			SaveNewData(gomock.Any(), gomock.Any()).
 			Return(test.ReverseData, test.err).
 			MaxTimes(1)
 
 		t.Run(test.Name, func(t *testing.T) {
-
+			// добавляем к контексту запроса информацию о UserID (заглушка для интерцептора)
 			newCtx := context.WithValue(ctx, interceptors.CtxKey,
 				servermodels.UserInfo{UserID: test.UserID, Register: test.UserExist})
-
+			// выполняем запрос
 			ans, err := serv.SaveData(newCtx, test.DataToSend)
 			require.Equal(t, err, test.want.serv_err)
 			if err == nil {
+				// если ошибка нулевая, то должен быть ответ
 				require.NotEmpty(t, ans)
 				if ans.IsOutdated {
+					// если в ответ были получены новые данные, сравниваем их с ожидаемыми
 					require.Equal(t, ans.ReverseData.Data, test.ReverseData.Data)
 					require.Equal(t, ans.ReverseData.DataType, test.ReverseData.Type)
 					require.Equal(t, ans.ReverseData.Metainfo, test.ReverseData.MetaInfo)
@@ -374,6 +356,7 @@ func TestSaveData(t *testing.T) {
 	}
 }
 
+// TestUpdateData тестирование функции обновления данных
 func TestUpdateData(t *testing.T) {
 	// создаём контроллер
 	ctrl := gomock.NewController(t)
@@ -383,6 +366,7 @@ func TestUpdateData(t *testing.T) {
 	mockUsers := mocks.NewMockUserStor(ctrl)
 	mockInfo := mocks.NewMockInfoStorage(ctrl)
 
+	// создаем тестовую структуру
 	serv := InitServerTest(mockUsers, mockInfo)
 
 	type want struct {
@@ -447,21 +431,21 @@ func TestUpdateData(t *testing.T) {
 			},
 		},
 	}
-
+	// создание заглушки контекста для запросов
 	ctx := context.Background()
 
 	for _, test := range tests {
-
+		// задаем режим работы моков для обновления данных
 		mockInfo.EXPECT().
 			UpdateData(gomock.Any(), gomock.Any()).
 			Return(test.err).
 			MaxTimes(1)
 
 		t.Run(test.Name, func(t *testing.T) {
-
+			// добавляем к контексту запроса информацию о UserID (заглушка для интерцептора)
 			newCtx := context.WithValue(ctx, interceptors.CtxKey,
 				servermodels.UserInfo{UserID: test.UserID, Register: test.UserExist})
-
+			// выполняем запрос
 			_, err := serv.UpdateData(newCtx, test.DataToSend)
 			require.Equal(t, err, test.want.serv_err)
 
@@ -469,6 +453,7 @@ func TestUpdateData(t *testing.T) {
 	}
 }
 
+// TestGetData тестирование функции получения данных
 func TestGetData(t *testing.T) {
 	// создаём контроллер
 	ctrl := gomock.NewController(t)
@@ -478,6 +463,7 @@ func TestGetData(t *testing.T) {
 	mockUsers := mocks.NewMockUserStor(ctrl)
 	mockInfo := mocks.NewMockInfoStorage(ctrl)
 
+	// создаем тестовую структуру
 	serv := InitServerTest(mockUsers, mockInfo)
 
 	type want struct {
@@ -555,27 +541,32 @@ func TestGetData(t *testing.T) {
 			},
 		},
 	}
-
+	// создание заглушки контекста для запросов
 	ctx := context.Background()
 
 	for _, test := range tests {
-
+		// задаем режим работы моков для получения данных
 		mockInfo.EXPECT().
 			GetData(gomock.Any(), gomock.Any()).
 			Return(test.RecieveData, test.err).
 			MaxTimes(1)
 
-		err := serv.BinStorFunc.SaveBinData(test.UserID, test.StorageID, test.RecieveData.Data)
+		// кодируем данные перед предварительным сохранением
+		encData, err := coder.Encrypt(test.RecieveData.Data)
+		require.NoError(t, err)
+		// предварительно сохраняем данные в тестовое бинарное хранилище
+		err = serv.BinStorFunc.SaveBinData(test.UserID, test.StorageID, encData)
 		require.NoError(t, err)
 
 		t.Run(test.Name, func(t *testing.T) {
-
+			// добавляем к контексту запроса информацию о UserID (заглушка для интерцептора)
 			newCtx := context.WithValue(ctx, interceptors.CtxKey,
 				servermodels.UserInfo{UserID: test.UserID, Register: test.UserExist})
-
+			// выполняем запрос
 			ans, err := serv.GiveData(newCtx, test.ToSend)
 			require.Equal(t, err, test.want.serv_err)
 			if err == nil {
+				// если ошибка нет, то сравниваем полученные данные
 				require.Equal(t, ans.Data, test.RecieveData.Data)
 				require.Equal(t, ans.DataType, test.RecieveData.Type)
 				require.Equal(t, ans.Metainfo, test.RecieveData.MetaInfo)
@@ -586,6 +577,7 @@ func TestGetData(t *testing.T) {
 	}
 }
 
+// TestGetData тестирование функции получения данных
 func TestGetDataList(t *testing.T) {
 	// создаём контроллер
 	ctrl := gomock.NewController(t)
@@ -595,6 +587,7 @@ func TestGetDataList(t *testing.T) {
 	mockUsers := mocks.NewMockUserStor(ctrl)
 	mockInfo := mocks.NewMockInfoStorage(ctrl)
 
+	// создаем тестовую структуру
 	serv := InitServerTest(mockUsers, mockInfo)
 
 	type want struct {
@@ -717,23 +710,25 @@ func TestGetDataList(t *testing.T) {
 		},
 	}
 
+	// создание заглушки контекста для запросов
 	ctx := context.Background()
 
 	for _, test := range tests {
-
+		// задаем режим работы моков для получения информации о данных
 		mockInfo.EXPECT().
 			GetDataList(gomock.Any()).
 			Return(test.StagedData, test.err).
 			MaxTimes(1)
 
 		t.Run(test.Name, func(t *testing.T) {
-
+			// добавляем к контексту запроса информацию о UserID (заглушка для интерцептора)
 			newCtx := context.WithValue(ctx, interceptors.CtxKey,
 				servermodels.UserInfo{UserID: test.UserID, Register: test.UserExist})
-
+			// выполняем запроос
 			ans, err := serv.GiveDataList(newCtx, test.ToSend)
 			require.Equal(t, err, test.want.serv_err)
 			if err == nil {
+				// если ошибка нет, то сравниваем полученные данные
 				for i, dataLine := range ans.DataList {
 					require.Equal(t, dataLine.DataType, test.StagedData[i].Type)
 					require.Equal(t, dataLine.Metainfo, test.StagedData[i].MetaInfo)
@@ -747,6 +742,7 @@ func TestGetDataList(t *testing.T) {
 	}
 }
 
+// TestDeleteData тестирование функции удаления данных
 func TestDeleteData(t *testing.T) {
 	// создаём контроллер
 	ctrl := gomock.NewController(t)
@@ -756,9 +752,8 @@ func TestDeleteData(t *testing.T) {
 	mockUsers := mocks.NewMockUserStor(ctrl)
 	mockInfo := mocks.NewMockInfoStorage(ctrl)
 
+	// создаем тестовую структуру
 	serv := InitServerTest(mockUsers, mockInfo)
-
-	//CurrTime := time.Now().Format(time.RFC850)
 
 	type want struct {
 		serv_err error
@@ -808,21 +803,21 @@ func TestDeleteData(t *testing.T) {
 			},
 		},
 	}
-
+	// создание заглушки контекста для запросов
 	ctx := context.Background()
 
 	for _, test := range tests {
-
+		// задаем режим работы моков для удаления данных
 		mockInfo.EXPECT().
 			DeleteData(gomock.Any(), gomock.Any()).
 			Return(test.err).
 			MaxTimes(1)
 
 		t.Run(test.Name, func(t *testing.T) {
-
+			// добавляем к контексту запроса информацию о UserID (заглушка для интерцептора)
 			newCtx := context.WithValue(ctx, interceptors.CtxKey,
 				servermodels.UserInfo{UserID: test.UserID, Register: test.UserExist})
-
+			// выполняем запрос
 			_, err := serv.DeleteData(newCtx, test.DataToSend)
 			require.Equal(t, err, test.want.serv_err)
 

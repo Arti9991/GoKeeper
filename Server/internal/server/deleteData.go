@@ -12,22 +12,24 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// GetAddr получение исходного URL по укороченному
+// DeleteData функция для принудительного полного удаления данных
 func (s *Server) DeleteData(ctx context.Context, in *pb.DeleteDataRequest) (*pb.DeleteDataResponce, error) {
 	var res pb.DeleteDataResponce
-	//var err error
+	// получение UserID из контекста с интерцептора
 	UserInfo := ctx.Value(interceptors.CtxKey).(servermodels.UserInfo)
-
+	// если пользователь не авторизован, сообщаем ему об этом
 	if !UserInfo.Register {
 		return &res, status.Errorf(codes.Aborted, `Пользователь не авторизован`)
 	}
 
+	// удаляем информацию о данных из базы
 	err := s.InfoStor.DeleteData(UserInfo.UserID, in.StorageID)
 	if err != nil {
 		logger.Log.Error("Error in delete datainfo from DB", zap.Error(err))
 		return &res, status.Error(codes.Aborted, `Ошибка в удалении информации о данных`)
 	}
 
+	// удаляем сами данные из хранилища
 	err = s.BinStorFunc.RemoveBinData(UserInfo.UserID, in.StorageID)
 	if err != nil {
 		logger.Log.Error("Error in remove data from binary storage", zap.Error(err))

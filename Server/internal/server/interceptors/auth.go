@@ -2,7 +2,6 @@ package interceptors
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 
@@ -22,6 +21,8 @@ type Claims struct {
 	UserID string
 }
 
+// вспомогательные переменные
+// (т.к. проект учебный, то секретный ключ задаем здесь)
 const TOKENEXP = time.Hour * 24
 const SECRETKEY = "supersecretkey"
 
@@ -29,31 +30,32 @@ type KeyContext string
 
 var CtxKey = KeyContext("UserID")
 
-// перехватчик для получения информации об авторизации пользователя из метаданных
+// AtuhInterceptor перехватчик для получения информации об авторизации пользователя из метаданных
 func AtuhInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 
 	var UserID string
 	var err error
 	UserExist := true
-
+	// получаем метаданные из входящего контекста
 	md, ok := metadata.FromIncomingContext(ctx)
 	if ok {
+		// проверяем наличие нужной строки
 		values := md.Get("UserID")
 		if len(values) > 0 {
 			UserIDJWT := values[0]
-
-			fmt.Println(len(UserIDJWT))
+			// если строка другой длинны, значит неверный токен
 			if len(UserIDJWT) != 143 {
 				UserExist = false
 			} else {
+				// пробуем получить токен
 				UserID, err = GetUserID(UserIDJWT)
 				if err != nil {
 					UserExist = false
 				} else {
+					// записываем полученный UserID в контекст
 					newCtx := context.WithValue(ctx, CtxKey, servermodels.UserInfo{UserID: UserID, Register: UserExist})
 					return handler(newCtx, req)
 				}
-				//fmt.Println("User ID un interceptor is:", UserID)
 			}
 		} else if len(values) == 0 {
 			UserExist = false
@@ -61,17 +63,18 @@ func AtuhInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServe
 	} else {
 		UserExist = false
 	}
-	fmt.Println(info.FullMethod)
-	fmt.Println(UserExist)
+
+	// Если какая-то из проверок не прошла и вызванный метод не авторизация/регистрация
+	// то ставим ответ, что пользователь не авторизован
 	if !UserExist && !IsLogRegMethod(info.FullMethod) {
 		logger.Log.Info("Bad user token")
 		return nil, status.Errorf(codes.PermissionDenied, `Данный пользователь не авторизован!`)
 	}
 
-	//newCtx := context.WithValue(ctx, CtxKey, servermodels.UserInfo{UserID: UserID, Register: UserExist})
 	return handler(ctx, req)
 }
 
+// GetUserID функция получения UserID из токена
 func GetUserID(tokenString string) (string, error) {
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims,
@@ -89,6 +92,7 @@ func GetUserID(tokenString string) (string, error) {
 	return claims.UserID, nil
 }
 
+// IsLogRegMethod функция проверки вызываемого метода
 func IsLogRegMethod(method string) bool {
 	if strings.Contains(method, "Register") || strings.Contains(method, "Login") {
 		return true

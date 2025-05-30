@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/Arti9991/GoKeeper/server/internal/coder"
@@ -15,36 +14,37 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// GetAddr получение исходного URL по укороченному
+// GiveData функция для получения данных, хранящихся на сервере
 func (s *Server) GiveData(ctx context.Context, in *pb.GiveDataRequest) (*pb.GiveDataResponce, error) {
 	var res pb.GiveDataResponce
-	//var err error
+	// получение UserID из контекста с интерцептора
 	UserInfo := ctx.Value(interceptors.CtxKey).(servermodels.UserInfo)
-
+	// если пользователь не авторизован, сообщаем ему об этом
 	if !UserInfo.Register {
 		return &res, status.Errorf(codes.Aborted, `Пользователь не авторизован`)
 	}
 
+	// получаем информацию о данных из базы
 	getData, err := s.InfoStor.GetData(UserInfo.UserID, in.StorageID)
 	if err != nil {
 		logger.Log.Error("Error in get datainfo from DB", zap.Error(err))
 		return &res, status.Error(codes.Aborted, `Ошибка в получении информации о данных`)
 	}
-
+	// получаем сами данные в бинарном формате
 	binData, err := s.BinStorFunc.GetBinData(UserInfo.UserID, in.StorageID)
 	if err != nil {
 		logger.Log.Error("Error in get data from bin storage", zap.Error(err))
 		return &res, status.Error(codes.Aborted, `Ошибка в получении данных из хранилища`)
 	}
 
-	fmt.Println(binData)
+	// декодируем данные
 	decData, err := coder.Derypt(binData)
 	if err != nil {
 		logger.Log.Error("Error in decoding data.", zap.Error(err))
 		return &res, status.Error(codes.Aborted, `Ошибка в декодировании данных на сервере`)
 	}
-	fmt.Println(decData)
 
+	// записываем ответ с полученными данными
 	res.Data = decData
 	res.DataType = getData.Type
 	res.Metainfo = getData.MetaInfo

@@ -3,7 +3,6 @@ package pgstor
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"strings"
 	"time"
 
@@ -41,20 +40,9 @@ var (
 	WHERE user_id = $1`
 	QuerryDeleteDataInfo = `DELETE FROM datainfo
   	WHERE storage_id = $1 AND user_id = $2`
-
-//		QuerryUpdateDataInfo = `WITH updated AS (
-//	    UPDATE datainfo
-//	    SET user_id = $1, storage_id = $3, meta_info = $4, saved_time = $5,
-//	    WHERE storage_id = $2 AND saved_time > $5
-//	    RETURNING *
-//
-// )
-// -- Если обновилось — вернём обновлённую строку, иначе — старую
-// SELECT * FROM updated
-// UNION ALL
-// SELECT * FROM datainfo WHERE storage_id = $2 AND NOT EXISTS (SELECT 1 FROM updated);`
 )
 
+// интерфеейс для базы данных с информацией о сохраненных данных
 type InfoStorage interface {
 	SaveNewData(userID string, DataInf servermodels.SaveDataInfo) (servermodels.SaveDataInfo, error)
 	GetData(userID string, storageID string) (servermodels.SaveDataInfo, error)
@@ -70,13 +58,14 @@ type DBStor struct {
 	DBInfo string  // информация для подключения к базе
 }
 
-// DBinit инициализация хранилища и создание/подключение к таблице.
+// DBinit инициализация хранилища и создание/подключение к таблице
+// с информацией о данных.
 func DBDataInit(DBInfo string) (*DBStor, error) {
 	var db DBStor
 	var err error
 
 	db.DBInfo = DBInfo
-
+	// открытие соединения с базой
 	db.DB, err = sql.Open("pgx", DBInfo)
 	if err != nil && DBInfo != "" {
 		logger.Log.Error("Error in opening datainfo Db", zap.Error(err))
@@ -84,25 +73,25 @@ func DBDataInit(DBInfo string) (*DBStor, error) {
 	} else if DBInfo == "" {
 		return &DBStor{}, errors.New("turning off data base mode by command dbinfo = _")
 	}
-
+	// создание таблицы для информации о данных
 	_, err = db.DB.Exec(QuerryCreateData)
 	if err != nil {
 		// если в таблице есть неопределенный тип, определяем его
 		if strings.Contains(err.Error(), "SQLSTATE 42710") || strings.Contains(err.Error(), "SQLSTATE 42704") {
-			// определеяем тип для хранения типа данных
+			// определеяем тип для хранения типа бинарных данных
 			_, err = db.DB.Exec(QuerryCreateType)
 			if err != nil {
 				logger.Log.Error("Error in creating datainfo Type Db", zap.Error(err))
 				return &DBStor{}, err
 			}
 
-			// создаем таблицу для ифнормации о данных
+			// создаем таблицу для информации о данных
 			_, err = db.DB.Exec(QuerryCreateData)
 			if err != nil {
 				logger.Log.Error("Error in creating datainfo Db", zap.Error(err))
 				return &DBStor{}, err
 			}
-
+			// провреям соединение
 			if err = db.DB.Ping(); err != nil {
 				logger.Log.Error("Error in ping datainfo Db", zap.Error(err))
 				return &DBStor{}, err
@@ -114,7 +103,7 @@ func DBDataInit(DBInfo string) (*DBStor, error) {
 			return &DBStor{}, err
 		}
 	}
-
+	// провреям соединение
 	if err = db.DB.Ping(); err != nil {
 		logger.Log.Error("Error in ping datainfo Db", zap.Error(err))
 		return &DBStor{}, err
@@ -124,12 +113,17 @@ func DBDataInit(DBInfo string) (*DBStor, error) {
 	return &db, nil
 }
 
+// SaveNewData функция сохранения данных. Если в базе есть более свежие (по времени сохранения) данные,
+// то возвращает их в ответ с соответствующим флагом
 func (db *DBStor) SaveNewData(userID string, DataInf servermodels.SaveDataInfo) (servermodels.SaveDataInfo, error) {
 	var err error
 	var outData servermodels.SaveDataInfo
+	// выполняем вставку полученной информации
 	_, err = db.DB.Exec(QuerrySaveDataInfo, userID, DataInf.StorageID, DataInf.MetaInfo, DataInf.Type, DataInf.SaveTime)
 	if err != nil {
 		if strings.Contains(err.Error(), "SQLSTATE 23505") {
+			// если для данного пользователя и storageID уже есть запись
+			// то получем время сохранения, указанное в этой записи
 			var BaseTime time.Time
 			row := db.DB.QueryRow(QuerryGetDataTime, DataInf.StorageID, userID)
 			err = row.Scan(&BaseTime)
@@ -137,9 +131,9 @@ func (db *DBStor) SaveNewData(userID string, DataInf servermodels.SaveDataInfo) 
 				logger.Log.Error("Error in getting saved time form datainfo Db", zap.Error(err))
 				return outData, err
 			}
-
 			if BaseTime.After(DataInf.SaveTime) {
-				fmt.Println("IN BEFORE")
+				// если время сохранения в записи из базы свежее, чем в запросе,
+				// получаем исходную запись из базы и возвращаем ее
 				row := db.DB.QueryRow(QuerryGetServDataInfo, DataInf.StorageID, userID)
 				err = row.Scan(&outData.MetaInfo, &outData.Type)
 				if err != nil {
@@ -151,6 +145,7 @@ func (db *DBStor) SaveNewData(userID string, DataInf servermodels.SaveDataInfo) 
 				outData.StorageID = DataInf.StorageID
 				return outData, servermodels.ErrNewerData
 			} else {
+				// если же полученное в запросе время свежее, чем в базе, то сохраняем информацию из запроса
 				_, err = db.DB.Exec(QuerryUpdateDataInfo, DataInf.StorageID, userID, DataInf.MetaInfo, DataInf.Type, DataInf.SaveTime)
 				if err != nil {
 					logger.Log.Error("Error in update newer data to datainfo Db", zap.Error(err))
@@ -166,6 +161,7 @@ func (db *DBStor) SaveNewData(userID string, DataInf servermodels.SaveDataInfo) 
 	return outData, nil
 }
 
+// GetData функция получения информации о конкретных данных для пользователя
 func (db *DBStor) GetData(userID string, storageID string) (servermodels.SaveDataInfo, error) {
 	var err error
 	var outData servermodels.SaveDataInfo
@@ -180,6 +176,7 @@ func (db *DBStor) GetData(userID string, storageID string) (servermodels.SaveDat
 	return outData, nil
 }
 
+// GetDataList функция получения списка для всех данных у пользователя
 func (db *DBStor) GetDataList(userID string) ([]servermodels.SaveDataInfo, error) {
 	var err error
 	var outData []servermodels.SaveDataInfo
@@ -204,6 +201,7 @@ func (db *DBStor) GetDataList(userID string) ([]servermodels.SaveDataInfo, error
 	return outData, nil
 }
 
+// UpdateData фнукция для принудительного обновления данных, не взирая на время сохранения
 func (db *DBStor) UpdateData(userID string, DataInf servermodels.SaveDataInfo) error {
 	var err error
 
@@ -215,6 +213,7 @@ func (db *DBStor) UpdateData(userID string, DataInf servermodels.SaveDataInfo) e
 	return nil
 }
 
+// DeleteData функция для полного удаления информации о данных из базы
 func (db *DBStor) DeleteData(userID string, storageID string) error {
 	var err error
 
@@ -226,6 +225,7 @@ func (db *DBStor) DeleteData(userID string, storageID string) error {
 	return nil
 }
 
+// CloseDataDB функция закрытия соединения с базой информации о данных
 func (db *DBStor) CloseDataDB() error {
 	return db.DB.Close()
 }
