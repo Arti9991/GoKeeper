@@ -61,6 +61,7 @@ type InfoStorage interface {
 	GetDataList(userID string) ([]servermodels.SaveDataInfo, error)
 	UpdateData(userID string, DataInf servermodels.SaveDataInfo) error
 	DeleteData(userID string, storageID string) error
+	CloseDataDB() error
 }
 
 // DBStor структура для интерфейсов базы данных.
@@ -223,4 +224,8 @@ func (db *DBStor) DeleteData(userID string, storageID string) error {
 		return err
 	}
 	return nil
+}
+
+func (db *DBStor) CloseDataDB() error {
+	return db.DB.Close()
 }

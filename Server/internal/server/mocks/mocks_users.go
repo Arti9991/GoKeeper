@@ -33,6 +33,20 @@ func (m *MockUserStor) EXPECT() *MockUserStorMockRecorder {
 	return m.recorder
 }
 
+// CloseUsersDB mocks base method.
+func (m *MockUserStor) CloseUsersDB() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CloseUsersDB")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CloseUsersDB indicates an expected call of CloseUsersDB.
+func (mr *MockUserStorMockRecorder) CloseUsersDB() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CloseUsersDB", reflect.TypeOf((*MockUserStor)(nil).CloseUsersDB))
+}
+
 // GetUser mocks base method.
 func (m *MockUserStor) GetUser(userLogin string) (string, string, error) {
 	m.ctrl.T.Helper()

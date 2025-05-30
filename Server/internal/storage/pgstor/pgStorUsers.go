@@ -28,6 +28,7 @@ var (
 type UserStor interface {
 	SaveNewUser(userID string, userLogin string, userPassw string) error
 	GetUser(userLogin string) (string, string, error)
+	CloseUsersDB() error
 }
 
 // DBUsersStor структура для.
@@ -96,4 +97,8 @@ func (db *DBUsersStor) GetUser(userLogin string) (string, string, error) {
 	}
 
 	return UID, pass, nil
+}
+
+func (db *DBUsersStor) CloseUsersDB() error {
+	return db.CloseUsersDB()
 }

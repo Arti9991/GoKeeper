@@ -1,10 +1,14 @@
 package server
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"log"
 	"net"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/Arti9991/GoKeeper/server/internal/config"
 	"github.com/Arti9991/GoKeeper/server/internal/logger"
@@ -26,13 +30,15 @@ type Server struct {
 	BinStor     *binstor.BinStor
 	BinStorFunc binstor.BinStrorFunc
 	Config      config.Config
+	Ctx         context.Context
 	proto.UnimplementedKeeperServer
 }
 
-func InitServer() *Server {
+func InitServer(ctx context.Context) *Server {
 	var err error
 	Serv := new(Server)
 
+	Serv.Ctx = ctx
 	Serv.Config = config.InitConf()
 
 	logger.Initialize(Serv.Config.InFileLog)
@@ -61,7 +67,14 @@ func InitServer() *Server {
 }
 
 func RunServer() error {
-	server := InitServer()
+
+	// канал для сообщения о Shutdown
+	shutCh := make(chan struct{})
+	// контекст для ожидания системного сигнала на завершение работы
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	server := InitServer(ctx)
 
 	cert, err := tls.LoadX509KeyPair("server.crt", "server.key")
 	if err != nil {
@@ -87,9 +100,36 @@ func RunServer() error {
 
 	proto.RegisterKeeperServer(s, server)
 
+	WaitShutdown(server, s, shutCh)
+
 	// получаем запрос gRPC
 	if err := s.Serve(listen); err != nil {
 		log.Fatal(err)
 	}
+	// ожидание сообщения о Shutdown
+	<-shutCh
+	logger.Log.Info("Server stopped!")
 	return nil
+}
+
+func WaitShutdown(server *Server, s *grpc.Server, shutCh chan struct{}) {
+	go func() {
+		var err error
+		<-server.Ctx.Done()
+		// получили сигнал os.Interrupt, запускаем процедуру graceful shutdown
+		logger.Log.Info("Graceful shutdown...")
+
+		s.GracefulStop()
+
+		err = server.DBData.DB.Close()
+		if err != nil {
+			logger.Log.Error("Error in closing datainfo Db", zap.Error(err))
+		}
+		server.DBusers.DB.Close()
+		if err != nil {
+			logger.Log.Error("Error in closing datainfo Db", zap.Error(err))
+		}
+		// сообщение о Shutdown
+		close(shutCh)
+	}()
 }
