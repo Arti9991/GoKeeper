@@ -115,6 +115,14 @@ func LoginRequest(Login string, Password string, req *ReqStruct) error {
 }
 
 func RegisterRequest(Login string, Password string, req *ReqStruct) error {
+	if len([]rune(Login)) < 4 {
+		return clientmodels.ErrBadLogin
+	}
+
+	if len([]rune(Password)) < 6 {
+		return clientmodels.ErrBadPassowrd
+	}
+
 	ctx := context.Background()
 
 	dial, err := grpc.NewClient(req.ServAddr, grpc.WithTransportCredentials(req.Creds)) //req.ServAddr

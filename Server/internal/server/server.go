@@ -104,7 +104,7 @@ func RunServer() error {
 
 	// получаем запрос gRPC
 	if err := s.Serve(listen); err != nil {
-		log.Fatal(err)
+		return err
 	}
 	// ожидание сообщения о Shutdown
 	<-shutCh

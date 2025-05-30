@@ -41,3 +41,6 @@ var ErrNoSuchRows = errors.New("no rows for update")
 var TokenFile = "./Token.txt"
 var JournalFile = "./Journal.jl"
 var StorageDir = "./Storage/"
+
+var ErrBadLogin = errors.New("Слишком короткий логин")
+var ErrBadPassowrd = errors.New("Пароль должен содержать не менее 6 символов")

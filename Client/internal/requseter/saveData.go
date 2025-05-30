@@ -66,8 +66,8 @@ func SaveDataRequest(Type string, req *ReqStruct, offlineMode bool) error {
 			return err
 		}
 	}
-	//fmt.Println(StorageID)
 
+	fmt.Printf("\nNew data saved! StorageID for new data: %s\n", StorageID)
 	return nil
 }
 
@@ -117,6 +117,7 @@ func SaveSend(JrInf clientmodels.NewerData, req *ReqStruct, data []byte) (client
 		//logger.Log.Error("SAVE Error in opening file", zap.Error(err))
 		return NewerData, err
 	}
+	defer file.Close()
 	reader := bufio.NewReader(file)
 	// Считываем строку текста
 	UserID, err = reader.ReadString('\n')
