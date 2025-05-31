@@ -86,6 +86,7 @@ func (req *ReqStruct) LoginRequest(Login string, Password string) error {
 	if err != nil || n == 0 {
 		return err
 	}
+	fmt.Printf("\nАвторизация успешна! Пользователь: %s \t", Login)
 	return nil
 }
 
@@ -126,6 +127,7 @@ func (req *ReqStruct) RegisterRequest(Login string, Password string) error {
 	if err != nil || n == 0 {
 		return err
 	}
+	fmt.Printf("\nРегистрация успешна! Пользователь: %s \t", Login)
 	return nil
 }
 
@@ -160,7 +162,7 @@ func (req *ReqStruct) LogoutRequest() error {
 	if err != nil {
 		return err
 	}
-
+	fmt.Printf("\nВсе данные пользователя очищены!\n")
 	return nil
 }
 
@@ -205,5 +207,6 @@ func (req *ReqStruct) SyncRequest(offlineMode bool) error {
 			return err
 		}
 	}
+	fmt.Printf("\nДанные синхронизированы!\n")
 	return nil
 }

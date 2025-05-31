@@ -63,6 +63,7 @@ func (req *ReqStruct) UpdateDataRequest(StorageID string, Type string, offlineMo
 			return err2
 		}
 	}
+	fmt.Printf("\nДанные обновлены!\n")
 	return nil
 }
 

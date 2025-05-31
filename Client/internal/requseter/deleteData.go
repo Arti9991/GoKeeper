@@ -44,6 +44,7 @@ func (req *ReqStruct) DeleteDataRequest(StorageID string, offlineMode bool) erro
 	if err != nil {
 		return err
 	}
+	fmt.Printf("\nДанные удалены!\n")
 	return nil
 }
 
