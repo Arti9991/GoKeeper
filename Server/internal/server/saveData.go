@@ -62,9 +62,9 @@ func (s *Server) SaveData(ctx context.Context, in *pb.SaveDataRequest) (*pb.Save
 			// если файл в бинарном хранилище отсутствует (по каким-либо причинам)
 			if err2 != nil && strings.Contains(err2.Error(), "no such file") {
 				// то возвращаем полученные данные
-				getUpdateData = in.Data
+				getUpdateData = encData
 				// и сохраняем их на в бинарное хранилище
-				err3 := s.BinStorFunc.SaveBinData(UserInfo.UserID, getData.StorageID, in.Data)
+				err3 := s.BinStorFunc.SaveBinData(UserInfo.UserID, getData.StorageID, encData)
 				if err3 != nil {
 					return &res, status.Error(codes.Aborted, `Ошибка в получении обновленных бинарных данных`)
 				}
@@ -72,8 +72,14 @@ func (s *Server) SaveData(ctx context.Context, in *pb.SaveDataRequest) (*pb.Save
 				logger.Log.Error("Error in getting newer binary data", zap.Error(err))
 				return &res, status.Error(codes.Aborted, `Ошибка в получении обновленных бинарных данных`)
 			}
+			// декодируем полученные данные
+			decData, err := coder.Derypt(getUpdateData)
+			if err != nil {
+				logger.Log.Error("Error in decoding data.", zap.Error(err))
+				return &res, status.Error(codes.Aborted, `Ошибка в декодировании данных на сервере`)
+			}
 			// записываем ответную структуру
-			res.ReverseData.Data = getUpdateData
+			res.ReverseData.Data = decData
 			res.ReverseData.DataType = getData.Type
 			res.ReverseData.Metainfo = getData.MetaInfo
 			res.ReverseData.Time = getData.SaveTime.Format(time.RFC850)

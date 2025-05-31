@@ -6,8 +6,6 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"os"
 	"strings"
 
@@ -19,6 +17,7 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
+// структура со всеми данными для запросов
 type ReqStruct struct {
 	ServAddr string
 	BinStor  *binstor.BinStor
@@ -26,206 +25,183 @@ type ReqStruct struct {
 	Creds    credentials.TransportCredentials
 }
 
-func NewRequester(addr string) *ReqStruct {
+// NewRequester функция для инциализации структуры для запросов
+func NewRequester(addr string) (*ReqStruct, error) {
 	var err error
 	ReqStruct := new(ReqStruct)
 	ReqStruct.ServAddr = addr
 
+	// инициализируем бинарное хранилище
 	ReqStruct.BinStor = binstor.NewBinStor(clientmodels.StorageDir)
-
+	// инициализируем базу данных с информацией о данных
 	ReqStruct.DBStor, err = dbstor.DbInit("Journal.db")
 	if err != nil {
-		fmt.Println(err)
+		return ReqStruct, err
 	}
 
 	// Загружаем сертификат, которому доверяем (тот, что сгенерирован на сервере)
-	caCert, err := ioutil.ReadFile("server.crt")
+	caCert, err := os.ReadFile("server.crt")
 	if err != nil {
-
+		return ReqStruct, err
 	}
 
 	// Создаём пул корневых сертификатов и добавляем туда server.crt
 	certPool := x509.NewCertPool()
 	if !certPool.AppendCertsFromPEM(caCert) {
-		log.Fatalf("Failed to add server.crt to cert pool")
+		return ReqStruct, err
 	}
 
 	// Настраиваем TLS
 	ReqStruct.Creds = credentials.NewClientTLSFromCert(certPool, "localhost") // CN должен совпадать с /CN= в server.crt
 
-	return ReqStruct
+	return ReqStruct, nil
 }
 
-func TestLogin(req *ReqStruct) error {
+// LoginRequest метод авторизации пользователя
+func (req *ReqStruct) LoginRequest(Login string, Password string) error {
+	// создаем контекст
 	ctx := context.Background()
-
+	// открывем соединение
 	dial, err := grpc.NewClient(req.ServAddr, grpc.WithTransportCredentials(req.Creds)) //req.ServAddr
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
-
-	r := pb.NewKeeperClient(dial)
-	ans, err := r.Loginuser(ctx, &pb.LoginRequest{
-		UserLogin:    "TestUserSECOND",
-		UserPassword: "123456789",
-	})
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-
-	fmt.Println(ans.UserID)
-	return nil
-}
-
-func LoginRequest(Login string, Password string, req *ReqStruct) error {
-
-	ctx := context.Background()
-
-	dial, err := grpc.NewClient(req.ServAddr, grpc.WithTransportCredentials(req.Creds)) //req.ServAddr
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
+	// инициализируем клиент и вызываем метод авторизации
 	r := pb.NewKeeperClient(dial)
 	ans, err := r.Loginuser(ctx, &pb.LoginRequest{
 		UserLogin:    Login,
 		UserPassword: Password,
 	})
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
-
-	fmt.Println(ans.UserID)
+	// записываем полученый токен в файл
 	file, err := os.OpenFile("./Token.txt", os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 	defer file.Close()
 
 	n, err := file.Write([]byte(ans.UserID + "\n"))
 	if err != nil || n == 0 {
-		fmt.Println(err)
 		return err
 	}
 	return nil
 }
 
-func RegisterRequest(Login string, Password string, req *ReqStruct) error {
+// RegisterRequest метод регистрации нового пользователя
+func (req *ReqStruct) RegisterRequest(Login string, Password string) error {
+	// проверяем корректность логина и пароля
 	if len([]rune(Login)) < 4 {
 		return clientmodels.ErrBadLogin
 	}
-
 	if len([]rune(Password)) < 6 {
 		return clientmodels.ErrBadPassowrd
 	}
 
+	// создаем контекст
 	ctx := context.Background()
-
+	// открывем соединение
 	dial, err := grpc.NewClient(req.ServAddr, grpc.WithTransportCredentials(req.Creds)) //req.ServAddr
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+	// инициализируем клиент и вызываем метод регистрации
 	r := pb.NewKeeperClient(dial)
 	ans, err := r.RegisterUser(ctx, &pb.RegisterRequest{
 		UserLogin:    Login,
 		UserPassword: Password,
 	})
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
-
-	fmt.Println(ans.UserID)
+	// записываем полученый токен в файл
 	file, err := os.OpenFile("./Token.txt", os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
-		//logger.Log.Error("SAVE Error in opening file", zap.Error(err))
-		fmt.Println(err)
 		return err
 	}
 	defer file.Close()
 
 	n, err := file.Write([]byte(ans.UserID + "\n"))
 	if err != nil || n == 0 {
-		//logger.Log.Error("Error in saving to file", zap.Error(err))
 		return err
 	}
 	return nil
 }
 
-func LogoutRequest(req *ReqStruct) error {
+// LogoutRequest метод выхода пользователя из системы
+// (удаляет токен сессии, все файлы из локального хранилища
+// и информацию о них)
+func (req *ReqStruct) LogoutRequest() error {
 	var err error
 
+	// спрашиваем подтверждение на выход из аккаунта
+	fmt.Println("Вы точно хотите выйти из аккаунта? [y/n] (Все несинхронизированные данные будут далены!)")
+	reader := bufio.NewReader(os.Stdin)
+	// читаем путь из консоли
+	agree, err := reader.ReadString('\n')
+	agree = strings.ToLower(agree)
+	if strings.Contains(agree, "n") {
+		return clientmodels.ErrUserAbort
+	}
+	// обновляем таблицу
 	err = req.DBStor.ReinitTable()
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
-
+	// чистим бинерное хранилище
 	err = os.RemoveAll(clientmodels.StorageDir)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 	err = os.Mkdir(clientmodels.StorageDir, 0644)
-
+	// удаляем файл токена
 	err = os.Remove("./Token.txt")
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 
-	return err
+	return nil
 }
 
-func SyncRequest(req *ReqStruct, offlineMode bool) error {
-
+// SyncRequest метод синхронизации локальных данных с сервером
+// (по флагу синхронизации отправляет запросы
+// на сохранение данных на сервере)
+func (req *ReqStruct) SyncRequest(offlineMode bool) error {
+	// проверяем флаг офлайн мода
 	if offlineMode {
 		return errors.New("cannot sync in offline mode")
 	}
-
+	// считываем токен из файла
 	var UserID string
-
-	fmt.Println("Open token")
 	file, err := os.Open(clientmodels.TokenFile)
 	if err != nil {
-		fmt.Println(err)
-		//logger.Log.Error("SAVE Error in opening file", zap.Error(err))
 		return err
 	}
 	defer file.Close()
 
 	reader := bufio.NewReader(file)
-	// Считываем строку текста
 	UserID, err = reader.ReadString('\n')
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
-	//Выводим строку
+	// удаляем суффикс
 	UserID = strings.TrimSuffix(UserID, "\n")
-	fmt.Printf("%#v\n", UserID)
-
+	// получаем список данных на синхронизацию
 	SnData, err := req.DBStor.GetForSync()
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 
+	// проходим в цикле по списку и обновляем данные
 	for _, syncPart := range SnData {
-		//fmt.Println(syncPart)
 
 		syncPart.Data, err = req.BinStor.GetBinData(syncPart.StorageID)
 		if err != nil {
-			fmt.Println(err)
 			return err
 		}
 		err = SendWithUpdate(syncPart.StorageID, syncPart, req, syncPart.Data)
 		if err != nil {
-			fmt.Println(err)
 			return err
 		}
 	}

@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
@@ -14,29 +13,29 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-func ShowDataLoc(req *ReqStruct) error {
+// ShowDataLoc метод отображения информации о локальных данных
+func (req *ReqStruct) ShowDataLoc() error {
 	err := req.DBStor.ShowTable()
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 
 	return nil
 }
 
-func ShowDataOn(req *ReqStruct, offlineMode bool) error {
+// ShowDataOn метод отображения информации о данных на сервере
+func (req *ReqStruct) ShowDataOn(offlineMode bool) error {
 	var err error
 	var UserID string
 
 	if offlineMode {
+		// в офлайн режиме метод недоступен
 		return clientmodels.ErrNoOfflineList
 	}
 
-	fmt.Println("Open token")
+	// считываем токен
 	file, err := os.Open("./Token.txt")
 	if err != nil {
-		fmt.Println(err)
-		//logger.Log.Error("SAVE Error in opening file", zap.Error(err))
 		return err
 	}
 	defer file.Close()
@@ -45,28 +44,26 @@ func ShowDataOn(req *ReqStruct, offlineMode bool) error {
 	// Считываем строку текста
 	UserID, err = reader.ReadString('\n')
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
-	//Выводим строку
+	// удаляем лишний суффикс
 	UserID = strings.TrimSuffix(UserID, "\n")
-	fmt.Printf("%#v", UserID)
-
+	// добавляем UserID к метаданным запроса
 	var header metadata.MD
 	md := metadata.New(map[string]string{"UserID": UserID})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
-
+	// инициализируем клиент
 	dial, err := grpc.NewClient(req.ServAddr, grpc.WithTransportCredentials(req.Creds)) //req.ServAddr
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-
+	// вызываем метод для получения списка всех сохраненных данных
 	r := pb.NewKeeperClient(dial)
 	ans, err := r.GiveDataList(ctx, &pb.GiveDataListRequest{}, grpc.Header(&header))
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
+	// выводим список с информацией о данных на экран
 	fmt.Printf("\nSaved data on server\n")
 	fmt.Printf("%-5s %-64s %#-25v %-10s %-40s\n", "num", "StorageID", "MetaInfo", "Type", "SaveTime")
 	for i, infoLine := range ans.DataList {

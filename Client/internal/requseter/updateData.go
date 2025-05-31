@@ -16,17 +16,16 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-func UpdateDataRequest(StorageID string, Type string, req *ReqStruct, offlineMode bool) error {
-
+// UpdateDataRequest функция принудительного обновления данных
+func (req *ReqStruct) UpdateDataRequest(StorageID string, Type string, offlineMode bool) error {
 	var err error
 
-	fmt.Println(offlineMode)
-
+	// парсим входные данные для обновления
 	data, err := inputfunc.ParceInput(Type)
 	if err != nil {
 		return err
 	}
-
+	// просим ввести новую метаинформацию
 	fmt.Printf("\nВведите метаинформацию:")
 	// открываем потоковое чтение из консоли
 	reader := bufio.NewReader(os.Stdin)
@@ -34,8 +33,9 @@ func UpdateDataRequest(StorageID string, Type string, req *ReqStruct, offlineMod
 	Metainfo, _ := reader.ReadString('\n')
 	strings.TrimSuffix(Metainfo, "\n")
 
+	// сохраняем время обновления информации
 	CurrTime := time.Now().UTC().Format(time.RFC850)
-
+	// создаем структуру с новыми данными
 	DtInf := clientmodels.NewerData{
 		StorageID: StorageID,
 		DataType:  Type,
@@ -43,36 +43,36 @@ func UpdateDataRequest(StorageID string, Type string, req *ReqStruct, offlineMod
 		SaveTime:  CurrTime,
 		Data:      data,
 	}
-
+	// обновляем локальные данные
 	err = UpdateDataOfline(DtInf, req)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 
 	if !offlineMode {
+		// если режим работы online явно не указан
+		// обновляем данные на сервере
 		err2 := UpdateDataOnline(DtInf, req)
 		if err2 != nil {
-			fmt.Println(err2)
 			return err2
 		}
+		// если все успешно, ставим метку о свежести
+		// локальных данных
 		err2 = req.DBStor.MarkDone(DtInf.StorageID)
 		if err2 != nil {
-			fmt.Println(err2)
 			return err2
 		}
 	}
 	return nil
 }
 
+// UpdateDataOnline функция обновления данных на сервере
 func UpdateDataOnline(DtInf clientmodels.NewerData, req *ReqStruct) error {
 	var UserID string
 
-	fmt.Println("Open token")
+	// считваем токен
 	file, err := os.Open("./Token.txt")
 	if err != nil {
-		fmt.Println(err)
-		//logger.Log.Error("SAVE Error in opening file", zap.Error(err))
 		return err
 	}
 	defer file.Close()
@@ -81,22 +81,20 @@ func UpdateDataOnline(DtInf clientmodels.NewerData, req *ReqStruct) error {
 	// Считываем строку текста
 	UserID, err = reader.ReadString('\n')
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
-	//Выводим строку
+	// удаляем лишний суффикс
 	UserID = strings.TrimSuffix(UserID, "\n")
-	fmt.Printf("%#v", UserID)
-
+	// добавляем UserID к метаданным запроса
 	var header metadata.MD
 	md := metadata.New(map[string]string{"UserID": UserID})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
-
+	// инициазируем клиент для запроса
 	dial, err := grpc.NewClient(req.ServAddr, grpc.WithTransportCredentials(req.Creds)) //req.ServAddr
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	// выполняем запрос на обновление данных
 	r := pb.NewKeeperClient(dial)
 	_, err = r.UpdateData(ctx, &pb.UpdateDataRequest{
 		StorageID: DtInf.StorageID,
@@ -106,19 +104,20 @@ func UpdateDataOnline(DtInf clientmodels.NewerData, req *ReqStruct) error {
 		Data:      DtInf.Data,
 	}, grpc.Header(&header))
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 
 	return nil
 }
 
+// UpdateDataOfline функция обновления данных на клиенте
 func UpdateDataOfline(DtInf clientmodels.NewerData, req *ReqStruct) error {
 	var err error
-
+	// ообновляем инфомрацию о данных
 	err = req.DBStor.UpdateInfo(DtInf.StorageID, DtInf)
 	if err != nil {
 		if err == clientmodels.ErrNoSuchRows {
+			// если информации нет, сохраняем ее
 			err2 := req.DBStor.SaveNew(DtInf.StorageID, DtInf)
 			if err2 != nil {
 				return err2
@@ -127,10 +126,9 @@ func UpdateDataOfline(DtInf clientmodels.NewerData, req *ReqStruct) error {
 			return err
 		}
 	}
-
+	// обновляем сами данные в хранилище
 	err = req.BinStor.UpdateBinData(DtInf.StorageID, DtInf.Data)
 	if err != nil {
-		fmt.Println(err)
 		err2 := req.BinStor.SaveBinData(DtInf.StorageID, DtInf.Data)
 		return err2
 	}

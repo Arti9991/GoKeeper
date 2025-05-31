@@ -47,6 +47,7 @@ func RequesterTest() *ReqStruct {
 	return ReqStruct
 }
 
+// TestRegisterLoginUser функция для тестирования регистрации и авторизации пользователя (онлайн)
 func TestRegisterLoginUser(t *testing.T) {
 
 	req := RequesterTest()
@@ -123,20 +124,22 @@ func TestRegisterLoginUser(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		err := RegisterRequest(test.UserLogin, test.UserPassword, req)
+		err := req.RegisterRequest(test.UserLogin, test.UserPassword)
+		fmt.Println(err)
 		require.Equal(t, test.want.serv_err1, err)
 		if !test.anotherAuth {
-			err = LoginRequest(test.UserLogin, test.UserPassword, req)
+			err = req.LoginRequest(test.UserLogin, test.UserPassword)
 			require.Equal(t, test.want.serv_err2, err)
 		} else {
-			err = LoginRequest(test.UserLogin2, test.UserPassword2, req)
+			err = req.LoginRequest(test.UserLogin2, test.UserPassword2)
 			require.Equal(t, test.want.serv_err2, err)
 		}
 	}
-	err := LogoutRequest(req)
+	err := req.LogoutRequest()
 	require.NoError(t, err)
 }
 
+// TestBasicReq функция для тестирования базовых онлайн и офлайн методов
 func TestBasicReq(t *testing.T) {
 	req := RequesterTest()
 
@@ -261,62 +264,18 @@ func TestBasicReq(t *testing.T) {
 				serv_err1: nil,
 			},
 		},
-		// {
-		// 	Name:         "Simple registration with no password and login",
-		// 	UserLogin:    rand.Text()[:6],
-		// 	UserPassword: "",
-		// 	anotherAuth:  false,
-		// 	want: want{
-		// 		serv_err1: clientmodels.ErrBadPassowrd,
-		// 		serv_err2: status.Error(codes.PermissionDenied, `Неверное имя пользователя или пароль`),
-		// 	},
-		// },
-		// {
-		// 	Name:         "Simple registration short username and login",
-		// 	UserLogin:    rand.Text()[:3],
-		// 	UserPassword: AllPassw,
-		// 	anotherAuth:  false,
-		// 	want: want{
-		// 		serv_err1: clientmodels.ErrBadLogin,
-		// 		serv_err2: status.Error(codes.PermissionDenied, `Неверное имя пользователя или пароль`),
-		// 	},
-		// },
-		// {
-		// 	Name:          "Simple registration and login with another Login",
-		// 	UserLogin:     rand.Text()[:6],
-		// 	UserPassword:  AllPassw,
-		// 	UserLogin2:    "Some Another Login",
-		// 	UserPassword2: AllPassw,
-		// 	anotherAuth:   true,
-		// 	want: want{
-		// 		serv_err1: nil,
-		// 		serv_err2: status.Error(codes.PermissionDenied, `Неверное имя пользователя или пароль`),
-		// 	},
-		// },
-		// {
-		// 	Name:          "Simple registration and login with another password",
-		// 	UserLogin:     OneLogin,
-		// 	UserPassword:  AllPassw,
-		// 	UserLogin2:    OneLogin,
-		// 	UserPassword2: "Some Another Passw",
-		// 	anotherAuth:   true,
-		// 	want: want{
-		// 		serv_err1: nil,
-		// 		serv_err2: status.Error(codes.PermissionDenied, `Неверное имя пользователя или пароль`),
-		// 	},
-		// },
 	}
 	for _, test := range tests {
 		fmt.Printf("\n\n%s\n\n", test.Name)
 		switch test.TestType {
 		case "REG":
-			err := RegisterRequest(test.UserLogin, test.UserPassword, req)
+			err := req.RegisterRequest(test.UserLogin, test.UserPassword)
 			require.Equal(t, test.want.serv_err1, err)
 		case "SAVE":
 			StorID, err := SaveDataTest(test.Data, req, test.offlineMode)
 			require.Equal(t, test.want.serv_err1, err)
 
-			err = GetDataRequest(StorID, req, test.offlineMode)
+			err = req.GetDataRequest(StorID, test.offlineMode)
 			require.Equal(t, test.want.serv_err1, err)
 		case "UPDATE":
 			StorID, err := SaveDataTest(test.Data, req, test.offlineMode)
@@ -326,14 +285,14 @@ func TestBasicReq(t *testing.T) {
 			err = UpdateDataTest(test.Data2, req, test.offlineMode)
 			require.Equal(t, test.want.serv_err1, err)
 
-			err = GetDataRequest(StorID, req, test.offlineMode)
+			err = req.GetDataRequest(StorID, test.offlineMode)
 			require.Equal(t, test.want.serv_err1, err)
 
 		case "DELETE":
 			StorID, err := SaveDataTest(test.Data, req, test.offlineMode)
 			require.Equal(t, test.want.serv_err1, err)
 
-			err = DeleteDataRequest(StorID, req, test.offlineMode)
+			err = req.DeleteDataRequest(StorID, test.offlineMode)
 			require.Equal(t, test.want.serv_err1, err)
 		case "OFFLINE":
 			StorID, err := SaveDataTest(test.Data, req, test.offlineMode)
@@ -343,7 +302,7 @@ func TestBasicReq(t *testing.T) {
 			err = UpdateDataTest(test.Data2, req, test.offlineMode)
 			require.Equal(t, test.want.serv_err1, err)
 
-			err = GetDataRequest(StorID, req, test.offlineMode)
+			err = req.GetDataRequest(StorID, test.offlineMode)
 			require.Equal(t, test.want.serv_err1, err)
 		case "SHOW":
 			_, err := SaveDataTest(test.Data, req, false)
@@ -352,14 +311,14 @@ func TestBasicReq(t *testing.T) {
 			_, err = SaveDataTest(test.Data2, req, true)
 			require.Equal(t, test.want.serv_err1, err)
 
-			err = ShowDataLoc(req)
+			err = req.ShowDataLoc()
 			require.Equal(t, test.want.serv_err1, err)
-			err = ShowDataOn(req, false)
+			err = req.ShowDataOn(false)
 			require.Equal(t, test.want.serv_err1, err)
 		}
 
 	}
 
-	err := LogoutRequest(req)
+	err := req.LogoutRequest()
 	require.NoError(t, err)
 }

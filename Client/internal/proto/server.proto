@@ -4,6 +4,18 @@ package server;
 
 option go_package = "server/proto";
 
+message CardInfo {
+  string number = 1;
+	string expDate = 2;
+	string cVVcode = 3;
+	string holder = 4;
+}
+
+message AuthInfo {
+  string login = 1;
+	string password = 2;
+}
+
 message RegisterRequest {
   string UserLogin = 1;
   string UserPassword = 2;

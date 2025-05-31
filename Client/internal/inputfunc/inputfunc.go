@@ -2,57 +2,63 @@ package inputfunc
 
 import (
 	"bufio"
-	"bytes"
-	"encoding/gob"
 	"fmt"
 	"os"
 	"strings"
 
 	"github.com/Arti9991/GoKeeper/client/internal/clientmodels"
+	"google.golang.org/protobuf/proto"
+
+	//"github.com/Arti9991/GoKeeper/client/internal/proto"
+	pb "github.com/Arti9991/GoKeeper/client/internal/proto"
 )
 
+// ParceInput функция для парсинга входных данных
 func ParceInput(Type string) ([]byte, error) {
 	var data []byte
 
 	switch Type {
 	case "CARD":
+		// просим ввести данные с карты
 		fmt.Printf("\nВведите данные карты\n")
 		fmt.Printf("Введите номер карты: ")
 		// открываем потоковое чтение из консоли
 		reader := bufio.NewReader(os.Stdin)
-		// читаем строку из консоли
+		// считывваем все данные из консоли
 		num, err := reader.ReadString('\n')
+		if len([]rune(num)) < 8 {
+			// номер карты слишком короткий
+			return nil, clientmodels.ErrShortNum
+		}
 		fmt.Printf("Введите срок действия карты: ")
 		date, err := reader.ReadString('\n')
 		fmt.Printf("Введите CVV карты: ")
 		CVV, err := reader.ReadString('\n')
+		if len([]rune(CVV)) != 5 {
+			// CVV не равен трем символам
+			return nil, clientmodels.ErrBadCVV
+		}
 		fmt.Printf("Введите владельца карты: ")
 		name, err := reader.ReadString('\n')
 		if err != nil {
-			fmt.Println(err)
 			return nil, clientmodels.ErrorInput
 		}
-
+		// убираем лишние суффиксы после ввода
 		num = strings.TrimSuffix(num, "\n")
 		date = strings.TrimSuffix(date, "\n")
 		CVV = strings.TrimSuffix(CVV, "\n")
 		name = strings.TrimSuffix(name, "\n")
-
-		struc := clientmodels.CardInfo{
+		// сериализуем данные в proto формат
+		struc := &pb.CardInfo{
 			Number:  num,
 			ExpDate: date,
 			CVVcode: CVV,
 			Holder:  name,
 		}
-		var buf bytes.Buffer
-		enc := gob.NewEncoder(&buf)
-		err = enc.Encode(struc)
+		data, err = proto.Marshal(struc)
 		if err != nil {
-			fmt.Println(err)
 			return nil, err
 		}
-
-		data = buf.Bytes()
 
 		return data, nil
 
@@ -61,46 +67,38 @@ func ParceInput(Type string) ([]byte, error) {
 		fmt.Printf("Введите логин: ")
 		// открываем потоковое чтение из консоли
 		reader := bufio.NewReader(os.Stdin)
-		// читаем строку из консоли
+		// считывваем все данные из консоли
 		log, err := reader.ReadString('\n')
 		fmt.Printf("Введите пароль: ")
 		passw, err := reader.ReadString('\n')
 		if err != nil {
-			fmt.Println(err)
 			return nil, clientmodels.ErrorInput
 		}
-
+		// убираем лишние суффиксы после ввода
 		log = strings.TrimSuffix(log, "\n")
 		passw = strings.TrimSuffix(passw, "\n")
-
-		struc := clientmodels.LoginInfo{
+		// сериализуем данные в proto формат
+		struc := &pb.AuthInfo{
 			Login:    log,
 			Password: passw,
 		}
-
-		var buf bytes.Buffer
-		enc := gob.NewEncoder(&buf)
-		err = enc.Encode(struc)
+		data, err = proto.Marshal(struc)
 		if err != nil {
-			fmt.Println(err)
 			return nil, err
 		}
 
-		data = buf.Bytes()
-		fmt.Println(data)
 		return data, nil
 
 	case "TEXT":
 		fmt.Printf("\nВведите текст для сохранения: ")
 		// открываем потоковое чтение из консоли
 		reader := bufio.NewReader(os.Stdin)
-		// читаем строку из консоли
+		// читаем текст из консоли
 		txt, err := reader.ReadString('\n')
 		if err != nil {
-			fmt.Println(err)
 			return nil, clientmodels.ErrorInput
 		}
-
+		// приводим к типу byte
 		data = []byte(txt)
 
 		return data, nil
@@ -108,17 +106,17 @@ func ParceInput(Type string) ([]byte, error) {
 		fmt.Printf("\nВведите путь к файлу для загрузки: ")
 		// открываем потоковое чтение из консоли
 		reader := bufio.NewReader(os.Stdin)
-		// читаем строку из консоли
+		// читаем путь к файлу из консоли
 		path, err := reader.ReadString('\n')
 		path = strings.TrimSuffix(path, "\n")
 		path = strings.TrimSuffix(path, "\r")
 		fmt.Printf("%#v\n", path)
-
+		// читаем файл
 		data, err := os.ReadFile(path)
 		if err != nil {
-			fmt.Println(err)
 			return nil, clientmodels.ErrorInput
 		}
+		// если объем файла слишком большой, сообщаем об этом
 		if len(data) > 4194304 {
 			return nil, clientmodels.ErrBigData
 		}
@@ -128,20 +126,20 @@ func ParceInput(Type string) ([]byte, error) {
 	}
 }
 
+// ParceAnswer функция для вывода всех данных на экран
 func ParceAnswer(Data []byte, storageID string, Type string, Metainfo string) error {
 
 	switch Type {
 	case "CARD":
-		//fmt.Println(Data)
-		//fmt.Println(buff2)
-		fmt.Printf("Information: %s\n", Metainfo)
-
-		out := clientmodels.CardInfo{}
-		dec := gob.NewDecoder(bytes.NewBuffer(Data))
-		err := dec.Decode(&out)
+		// отображаем метаданные
+		fmt.Printf("\nInformation: %s\n", Metainfo)
+		// десериализуем полученные данные
+		out := pb.CardInfo{}
+		err := proto.Unmarshal(Data, &out)
 		if err != nil {
 			return err
 		}
+		// выводим данные карты на экран
 		fmt.Printf("Card numver: %s\n", out.Number)
 		fmt.Printf("Card CVV: %s\n", out.CVVcode)
 		fmt.Printf("Card exipre: %s\n", out.ExpDate)
@@ -149,40 +147,44 @@ func ParceAnswer(Data []byte, storageID string, Type string, Metainfo string) er
 		return nil
 
 	case "AUTH":
+		// отображаем метаданные
 		fmt.Printf("Information: %s\n", Metainfo)
 		fmt.Println(Metainfo)
-
-		out := clientmodels.LoginInfo{}
-		dec := gob.NewDecoder(bytes.NewBuffer(Data))
-		err := dec.Decode(&out)
+		// десериализуем полученные данные
+		out := pb.AuthInfo{}
+		err := proto.Unmarshal(Data, &out)
 		if err != nil {
 			return err
 		}
+		// выводим данные авторизации на экран
 		fmt.Printf("Login: %s\n", out.Login)
 		fmt.Printf("Password: %s\n", out.Password)
 		return nil
 	case "TEXT":
-		fmt.Printf("Information: %s\n", Metainfo)
+		// отображаем метаданные
+		fmt.Printf("\nInformation: %s\n", Metainfo)
 		fmt.Println(Metainfo)
-
+		// отображаем текст на экране
 		fmt.Printf("Saved text info: \n%s\n", string(Data))
 		return nil
 	case "BINARY":
-		fmt.Printf("\nВведите путь к файлу для сохранения: ")
+		// отображаем метаданные
+		fmt.Printf("\nInformation: %s\n", Metainfo)
+		// просим ввести путь, куда будет сохранен файл
+		fmt.Printf("\nВведите путь к файлу для сохранения (включая его имя и расширение): ")
 		// открываем потоковое чтение из консоли
 		reader := bufio.NewReader(os.Stdin)
-		// читаем строку из консоли
+		// читаем путь из консоли
 		path, err := reader.ReadString('\n')
 		path = strings.TrimSuffix(path, "\n")
 		path = strings.TrimSuffix(path, "\r")
-		fmt.Printf("%#v\n", path)
 
+		// сохрвняем файл по указанному пути
 		err = os.WriteFile(path, Data, 0644)
 		if err != nil {
-			fmt.Println(err)
 			return clientmodels.ErrBigCantSave
 		}
-
+		// уведомляем что файл сохранен
 		fmt.Printf("Файл сохранен в: %s\n", path)
 		return nil
 	}

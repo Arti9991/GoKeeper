@@ -8,7 +8,6 @@ import (
 	"encoding/gob"
 	"encoding/hex"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"time"
@@ -25,22 +24,20 @@ func SaveDataTest(DtInf clientmodels.NewerData, req *ReqStruct, offlineMode bool
 	DtInf.StorageID = hex.EncodeToString(hashData[:])
 
 	err := req.BinStor.SaveBinData(DtInf.StorageID, DtInf.Data)
-	fmt.Println(err)
+	if err != nil {
+		return " ", err
+	}
 
 	DtInf.SaveTime = time.Now().UTC().Format(time.RFC850)
 
-	//err = journal.JournalSave(JrInf)
-
-	// err = req.DBStor.ReinitTable()
-	// fmt.Println(err)
-
 	err = req.DBStor.SaveNew(DtInf.StorageID, DtInf)
-	fmt.Println(err)
+	if err != nil {
+		return " ", err
+	}
 
 	if !offlineMode {
 		err = SendWithUpdate(DtInf.StorageID, DtInf, req, DtInf.Data)
 		if err != nil {
-			fmt.Println(err)
 			return " ", err
 		}
 	}
@@ -55,15 +52,12 @@ func TestGetDataRequest(StorageID string, req *ReqStruct) error {
 	fmt.Println("Open token")
 	file, err := os.Open("./Token.txt")
 	if err != nil {
-		fmt.Println(err)
-		//logger.Log.Error("SAVE Error in opening file", zap.Error(err))
 		return err
 	}
 	reader := bufio.NewReader(file)
 	// Считываем строку текста
 	UserID, err = reader.ReadString('\n')
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 	//Выводим строку
@@ -76,7 +70,7 @@ func TestGetDataRequest(StorageID string, req *ReqStruct) error {
 
 	dial, err := grpc.NewClient(":8082", grpc.WithTransportCredentials(req.Creds)) //":8082"
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	r := pb.NewKeeperClient(dial)
@@ -84,7 +78,6 @@ func TestGetDataRequest(StorageID string, req *ReqStruct) error {
 		StorageID: StorageID,
 	}, grpc.Header(&header))
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 

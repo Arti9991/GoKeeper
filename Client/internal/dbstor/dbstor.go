@@ -10,6 +10,7 @@ import (
 	_ "modernc.org/sqlite"
 )
 
+// структура с информацией о локальной базе данных
 type DBStor struct {
 	DbInfo string
 	Db     *sql.DB
@@ -42,23 +43,23 @@ var (
   	WHERE storage_id = $1`
 )
 
+// DbInit инициализация локальной базы данных для хранения информации о данных
 func DbInit(DBInfo string) (*DBStor, error) {
 	var db DBStor
 	var err error
 
-	//db.DBInfo = DBInfo
-
+	// открываем соединение
 	db.Db, err = sql.Open("sqlite", DBInfo)
 	if err != nil && DBInfo != "" {
 		return &DBStor{}, err
 	} else if DBInfo == "" {
 		return &DBStor{}, errors.New("turning off data base mode by command dbinfo = _")
 	}
-
+	// проверяем соединение
 	if err = db.Db.Ping(); err != nil {
 		return &DBStor{}, err
 	}
-
+	// создаем таблицу
 	_, err = db.Db.Exec(QuerryCreateTable)
 	if err != nil {
 		return &DBStor{}, err
@@ -67,6 +68,8 @@ func DbInit(DBInfo string) (*DBStor, error) {
 	return &db, nil
 }
 
+// ReinitTable функция очистки и пересоздания таблицы
+// для функции logout (и тестов)
 func (db *DBStor) ReinitTable() error {
 	var err error
 
@@ -83,10 +86,10 @@ func (db *DBStor) ReinitTable() error {
 	return nil
 }
 
+// ShowTable функция вывода всех записей в таблице на экран
 func (db *DBStor) ShowTable() error {
 	var err error
 	var Jr clientmodels.JournalInfo
-	//var str7 string
 	var id string
 	var StorageID string
 	var sended bool
@@ -103,13 +106,12 @@ func (db *DBStor) ShowTable() error {
 			return err
 		}
 		fmt.Printf("%-10s %-64s %#-25v %-10s %-40s %#-6v\n", id, StorageID, Jr.MetaInfo, Jr.DataType, Jr.SaveTime, sended)
-		// fmt.Printf(id, StorageID, &Jr, sended)
 	}
 
 	return nil
 }
 
-// Save сохранение полученных значений в таблицу SQL.
+// SaveNew сохранение ифнормации о данных в таблицу
 func (db *DBStor) SaveNew(StorageID string, Jr clientmodels.NewerData) error {
 
 	var err error
@@ -122,38 +124,37 @@ func (db *DBStor) SaveNew(StorageID string, Jr clientmodels.NewerData) error {
 			}
 			return nil
 		} else {
-			//db.InFiles = true
 			return err
 		}
 	}
 	return nil
 }
 
-// Save сохранение полученных значений в таблицу SQL.
+// MarkDone отметка, что данные были отправлены на сервер
+// и синхронизированны
 func (db *DBStor) MarkDone(StorageID string) error {
 
 	var err error
 	_, err = db.Db.Exec(QuerryDone, StorageID)
 	if err != nil {
-		//db.InFiles = true
 		return err
 	}
 	return nil
 }
 
-// Save сохранение полученных значений в таблицу SQL.
+// MarkUnDone отметка, что локальне данные нельзя считать синхронизированными
+// (для случая когда метод Get возвращает более свежие данные с сервера)
 func (db *DBStor) MarkUnDone(StorageID string) error {
 
 	var err error
 	_, err = db.Db.Exec(QuerryUndone, StorageID)
 	if err != nil {
-		//db.InFiles = true
 		return err
 	}
 	return nil
 }
 
-// Save сохранение полученных значений в таблицу SQL.
+// UpdateInfoNewer принудительное обновление данных в таблице с отметкой о синхронизации
 func (db *DBStor) UpdateInfoNewer(StorageID string, Jr clientmodels.NewerData) error {
 
 	var err error
@@ -164,7 +165,8 @@ func (db *DBStor) UpdateInfoNewer(StorageID string, Jr clientmodels.NewerData) e
 	return nil
 }
 
-// Save сохранение полученных значений в таблицу SQL.
+// UpdateInfoNewer принудительное обновление данных в таблице
+// без отметки о синхронизации
 func (db *DBStor) UpdateInfo(StorageID string, Jr clientmodels.NewerData) error {
 
 	res, err := db.Db.Exec(QuerryUpdate, StorageID, Jr.MetaInfo, Jr.DataType, Jr.SaveTime, false)
@@ -172,7 +174,6 @@ func (db *DBStor) UpdateInfo(StorageID string, Jr clientmodels.NewerData) error 
 		if strings.Contains(err.Error(), "23505") {
 			return err
 		} else {
-			//db.InFiles = true
 			return err
 		}
 	}
@@ -186,7 +187,7 @@ func (db *DBStor) UpdateInfo(StorageID string, Jr clientmodels.NewerData) error 
 	return nil
 }
 
-// Get получение значений из таблицы SQL по ключу.
+// Get получение значений из таблицы по StorageID
 func (db *DBStor) Get(StorageID string) (clientmodels.NewerData, error) {
 
 	var err error
@@ -204,7 +205,8 @@ func (db *DBStor) Get(StorageID string) (clientmodels.NewerData, error) {
 	return out, nil
 }
 
-// Get получение значений из таблицы SQL по ключу.
+// GetForSync получение списка данных из таблицы, подлежащих синхронизацииэ
+// (отметка о sync - false)
 func (db *DBStor) GetForSync() ([]clientmodels.NewerData, error) {
 
 	var err error
@@ -228,7 +230,7 @@ func (db *DBStor) GetForSync() ([]clientmodels.NewerData, error) {
 	return out, nil
 }
 
-// Get получение значений из таблицы SQL по ключу.
+// DeleteData удаление строки из таблицы
 func (db *DBStor) DeleteData(StorageID string) error {
 	var err error
 	_, err = db.Db.Exec(QuerryDelete, StorageID)

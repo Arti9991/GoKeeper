@@ -2,6 +2,7 @@ package clientmodels
 
 import "errors"
 
+// структура с информацией о карте
 type CardInfo struct {
 	Number  string
 	ExpDate string
@@ -9,6 +10,7 @@ type CardInfo struct {
 	Holder  string
 }
 
+// структура с информацией авторизации
 type LoginInfo struct {
 	Login    string
 	Password string
@@ -23,6 +25,7 @@ type JournalInfo struct {
 	Sync       bool
 }
 
+// структура с данными и информацией о них
 type NewerData struct {
 	StorageID string
 	DataType  string
@@ -31,16 +34,26 @@ type NewerData struct {
 	Data      []byte
 }
 
-var ErrorInput = errors.New("ошибка ввода")
-var ErrBigData = errors.New("слишком большой размер данных")
-var ErrBigCantSave = errors.New("не удалось сохранить файл")
-var ErrNewerData = errors.New("более новые данные на сервере")
-var ErrNoOfflineList = errors.New("cannot do this in offline")
-var ErrNoSuchRows = errors.New("no rows for update")
+// служебные ошибки
+var (
+	ErrBigCantSave   = errors.New("не удалось сохранить файл")
+	ErrNewerData     = errors.New("более новые данные на сервере")
+	ErrNoOfflineList = errors.New("cannot do this in offline")
+	ErrNoSuchRows    = errors.New("no rows for update")
+)
 
+// пути для вспомогательных файлов
 var TokenFile = "./Token.txt"
 var JournalFile = "./Journal.jl"
 var StorageDir = "./Storage/"
 
-var ErrBadLogin = errors.New("Слишком короткий логин")
-var ErrBadPassowrd = errors.New("Пароль должен содержать не менее 6 символов")
+// ошибки ввода
+var (
+	ErrorInput     = errors.New("ошибка ввода")
+	ErrBigData     = errors.New("слишком большой размер данных")
+	ErrBadLogin    = errors.New("Слишком короткий логин")
+	ErrBadPassowrd = errors.New("Пароль должен содержать не менее 6 символов")
+	ErrShortNum    = errors.New("слишком короткий номер карты")
+	ErrBadCVV      = errors.New("cvv должен содержать три символа")
+	ErrUserAbort   = errors.New("отмена операции пользователем")
+)
