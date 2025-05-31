@@ -1,0 +1,109 @@
+syntax = "proto3";
+
+package server;
+
+option go_package = "server/proto";
+
+message CardInfo {
+  string number = 1;
+	string expDate = 2;
+	string cVVcode = 3;
+	string holder = 4;
+}
+
+message AuthInfo {
+  string login = 1;
+	string password = 2;
+}
+
+message RegisterRequest {
+  string UserLogin = 1;
+  string UserPassword = 2;
+
+}
+
+message RegisterResponce {
+  string UserID = 1;
+}
+
+message LoginRequest {
+  string UserLogin = 1;
+  string UserPassword = 2;
+
+}
+
+message LoginResponce {
+  string UserID = 1;
+}
+
+message SaveDataRequest {
+  string storageID = 1;
+  string metainfo = 2;
+  string dataType = 3;
+  string time = 4;
+  bytes data = 5; 
+}
+
+message SaveDataResponse {
+  message ReverseData {
+    string metainfo = 1;
+    string dataType = 2;
+    string time = 3;
+    bytes data = 4; 
+  }
+    string storageID = 1;
+    bool isOutdated = 2;
+    ReverseData reverseData = 3;
+}
+
+message UpdateDataRequest {
+  string storageID = 1;
+  string metainfo = 2;
+  string dataType = 3;
+  string time = 4;
+  bytes data = 5; 
+}
+
+message UpdateDataResponse {
+}
+
+message GiveDataRequest {
+  string storageID = 1;
+}
+
+message GiveDataResponce {
+  string metainfo = 1;
+  string dataType = 2;
+  string time = 3;
+  bytes data = 4; 
+}
+
+message GiveDataListRequest {
+}
+
+message GiveDataListResponce {
+  message DataList {
+    string storageID = 1;
+    string metainfo = 2;
+    string dataType = 3;
+    string time = 4;
+  }
+  repeated DataList dataList = 1;
+}
+
+message DeleteDataRequest {
+  string storageID = 1;
+}
+message DeleteDataResponce{
+
+}
+
+service Keeper {
+  rpc RegisterUser(RegisterRequest) returns (RegisterResponce);
+  rpc Loginuser(LoginRequest) returns (LoginResponce);
+  rpc SaveData(SaveDataRequest) returns (SaveDataResponse);
+  rpc UpdateData(UpdateDataRequest) returns (UpdateDataResponse);
+  rpc GiveData(GiveDataRequest) returns (GiveDataResponce);
+  rpc GiveDataList(GiveDataListRequest) returns (GiveDataListResponce);
+  rpc DeleteData(DeleteDataRequest) returns (DeleteDataResponce);
+}
