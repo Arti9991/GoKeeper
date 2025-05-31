@@ -57,8 +57,8 @@ var userLogin = &cobra.Command{
 }
 
 var userRegister = &cobra.Command{
-	Use:   "Register. Where 1st your login and 2nd your password",
-	Short: "Register user",
+	Use:   "register",
+	Short: "Register. Where 1st your login and 2nd your password",
 	Long:  `Регистрация новго пользователя. Параметры: [1]Логин [2]Пароль`,
 	Args:  cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -102,7 +102,7 @@ var saveData = &cobra.Command{
 	Long: `	Сохранение пользовательских данных. 
 	В единственном аргументе передается тип этих данных [1]Тип:
 	AUTH - данные для авторизации(Логин и пароль),
-	CARD - данные карты (номер, срок действия, CVV, держатель)б
+	CARD - данные карты (номер, срок действия, CVV, держатель),
 	TEXT - текстовая информация,
 	BINARY - бинарные данные. Размером не более 4 Мб.
 	Иные типы и параметры не поддерживаются!`,
