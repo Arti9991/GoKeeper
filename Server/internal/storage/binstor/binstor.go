@@ -26,7 +26,7 @@ func NewBinStor(StorageDir string) (*BinStor, error) {
 	// срздаем директорию хранилища, указанную в конфигурации
 	err := os.Mkdir(StorageDir, 0644)
 	if err != nil {
-		if strings.Contains(err.Error(), "that file already exists") {
+		if strings.Contains(err.Error(), "exist") {
 			return &BinStor{StorageDir: StorageDir}, nil
 		} else {
 			logger.Log.Error("Error in creating directory", zap.Error(err))
