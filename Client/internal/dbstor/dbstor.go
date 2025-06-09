@@ -107,7 +107,9 @@ func (db *DBStor) ShowTable() error {
 		}
 		fmt.Printf("%-10s %-64s %#-25v %-10s %-40s %#-6v\n", id, StorageID, Jr.MetaInfo, Jr.DataType, Jr.SaveTime, sended)
 	}
-
+	if err := rows.Err(); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -226,7 +228,9 @@ func (db *DBStor) GetForSync() ([]clientmodels.NewerData, error) {
 		}
 		out = append(out, val)
 	}
-
+	if err := rows.Err(); err != nil {
+		return out, err
+	}
 	return out, nil
 }
 

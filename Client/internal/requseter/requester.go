@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/Arti9991/GoKeeper/client/internal/binstor"
 	"github.com/Arti9991/GoKeeper/client/internal/clientmodels"
@@ -60,7 +61,8 @@ func NewRequester(addr string) (*ReqStruct, error) {
 // LoginRequest метод авторизации пользователя
 func (req *ReqStruct) LoginRequest(Login string, Password string) error {
 	// создаем контекст
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 	// открывем соединение
 	dial, err := grpc.NewClient(req.ServAddr, grpc.WithTransportCredentials(req.Creds)) //req.ServAddr
 	if err != nil {
@@ -101,7 +103,8 @@ func (req *ReqStruct) RegisterRequest(Login string, Password string) error {
 	}
 
 	// создаем контекст
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 	// открывем соединение
 	dial, err := grpc.NewClient(req.ServAddr, grpc.WithTransportCredentials(req.Creds)) //req.ServAddr
 	if err != nil {

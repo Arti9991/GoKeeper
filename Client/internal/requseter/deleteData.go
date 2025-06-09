@@ -17,7 +17,7 @@ import (
 // DeleteDataRequest метод удаления данных
 func (req *ReqStruct) DeleteDataRequest(StorageID string, offlineMode bool) error {
 	var err error
-	// спрашиваем подтверждение на выход из аккаунта
+	// спрашиваем подтверждение на удаление данных
 	fmt.Println("Вы точно хотите удалить данные? [y/n] (В онлайн режиме данные на сервере будут также удалены!)")
 	reader := bufio.NewReader(os.Stdin)
 	// читаем путь из консоли

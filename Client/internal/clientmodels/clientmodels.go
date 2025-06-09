@@ -2,20 +2,6 @@ package clientmodels
 
 import "errors"
 
-// структура с информацией о карте
-type CardInfo struct {
-	Number  string
-	ExpDate string
-	CVVcode string
-	Holder  string
-}
-
-// структура с информацией авторизации
-type LoginInfo struct {
-	Login    string
-	Password string
-}
-
 type JournalInfo struct {
 	Opperation string
 	StorageID  string

@@ -197,7 +197,9 @@ func (db *DBStor) GetDataList(userID string) ([]servermodels.SaveDataInfo, error
 		}
 		outData = append(outData, dataLine)
 	}
-
+	if err := rows.Err(); err != nil {
+		return outData, err
+	}
 	return outData, nil
 }
 

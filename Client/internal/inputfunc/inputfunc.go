@@ -128,11 +128,11 @@ func ParceInput(Type string) ([]byte, error) {
 
 // ParceAnswer функция для вывода всех данных на экран
 func ParceAnswer(Data []byte, storageID string, Type string, Metainfo string) error {
+	// отображаем метаданные
+	fmt.Printf("\nInformation: %s\n", Metainfo)
 
 	switch Type {
 	case "CARD":
-		// отображаем метаданные
-		fmt.Printf("\nInformation: %s\n", Metainfo)
 		// десериализуем полученные данные
 		out := pb.CardInfo{}
 		err := proto.Unmarshal(Data, &out)
@@ -147,9 +147,6 @@ func ParceAnswer(Data []byte, storageID string, Type string, Metainfo string) er
 		return nil
 
 	case "AUTH":
-		// отображаем метаданные
-		fmt.Printf("Information: %s\n", Metainfo)
-		fmt.Println(Metainfo)
 		// десериализуем полученные данные
 		out := pb.AuthInfo{}
 		err := proto.Unmarshal(Data, &out)
@@ -161,15 +158,10 @@ func ParceAnswer(Data []byte, storageID string, Type string, Metainfo string) er
 		fmt.Printf("Password: %s\n", out.Password)
 		return nil
 	case "TEXT":
-		// отображаем метаданные
-		fmt.Printf("\nInformation: %s\n", Metainfo)
-		fmt.Println(Metainfo)
 		// отображаем текст на экране
 		fmt.Printf("Saved text info: \n%s\n", string(Data))
 		return nil
 	case "BINARY":
-		// отображаем метаданные
-		fmt.Printf("\nInformation: %s\n", Metainfo)
 		// просим ввести путь, куда будет сохранен файл
 		fmt.Printf("\nВведите путь к файлу для сохранения (включая его имя и расширение): ")
 		// открываем потоковое чтение из консоли

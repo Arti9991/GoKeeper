@@ -88,7 +88,7 @@ func TestGetDataRequest(StorageID string, req *ReqStruct) error {
 		//fmt.Println(buff2)
 		fmt.Println(ans.Metainfo)
 
-		out := clientmodels.CardInfo{}
+		out := pb.CardInfo{}
 		dec := gob.NewDecoder(bytes.NewBuffer(ans.Data))
 		dec.Decode(&out)
 		fmt.Println(out.Number)
