@@ -63,11 +63,18 @@ func (req *ReqStruct) ShowDataOn(offlineMode bool) error {
 	if err != nil {
 		return err
 	}
+
 	// выводим список с информацией о данных на экран
 	fmt.Printf("\nSaved data on server\n")
 	fmt.Printf("%-5s %-64s %#-25v %-10s %-40s\n", "num", "StorageID", "MetaInfo", "Type", "SaveTime")
 	for i, infoLine := range ans.DataList {
-		fmt.Printf("%-5d %-64s %#-25v %-10s %-40s\n", i+1, infoLine.StorageID, infoLine.Metainfo, infoLine.DataType, infoLine.Time)
+		var Meta string
+		if len(infoLine.Metainfo) > 20 {
+			Meta = infoLine.Metainfo[:20]
+		} else {
+			Meta = infoLine.Metainfo
+		}
+		fmt.Printf("%-5d %-64s %#-25v %-10s %-40s\n", i+1, infoLine.StorageID, Meta, infoLine.DataType, infoLine.Time)
 	}
 	return nil
 }

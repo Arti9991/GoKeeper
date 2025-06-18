@@ -40,7 +40,7 @@ func NewBinStor(StorageDir string) (*BinStor, error) {
 func (s *BinStor) SaveBinData(userID string, storageID string, binData []byte) error {
 	// Cохраняем данные на диск
 	//err := os.WriteFile(s.StorageDir+userID+"_"+storageID, binData, 0644)
-	file, err := os.OpenFile(s.StorageDir+userID+"_"+storageID, os.O_WRONLY|os.O_CREATE, 0644)
+	file, err := os.OpenFile(s.StorageDir+userID+"_"+storageID, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		logger.Log.Error("SAVE Error in opening file", zap.Error(err))
 		return err

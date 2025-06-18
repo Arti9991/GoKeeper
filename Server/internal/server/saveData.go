@@ -2,7 +2,8 @@ package server
 
 import (
 	"context"
-	"strings"
+	"errors"
+	"os"
 	"time"
 
 	"github.com/Arti9991/GoKeeper/server/internal/coder"
@@ -60,7 +61,7 @@ func (s *Server) SaveData(ctx context.Context, in *pb.SaveDataRequest) (*pb.Save
 			// и получаем обновленные данные из бинарного харнилища
 			getUpdateData, err2 := s.BinStorFunc.GetBinData(UserInfo.UserID, getData.StorageID)
 			// если файл в бинарном хранилище отсутствует (по каким-либо причинам)
-			if err2 != nil && strings.Contains(err2.Error(), "no such file") {
+			if err2 != nil && errors.Is(err2, os.ErrNotExist) {
 				// то возвращаем полученные данные
 				getUpdateData = encData
 				// и сохраняем их на в бинарное хранилище

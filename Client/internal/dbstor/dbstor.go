@@ -105,7 +105,13 @@ func (db *DBStor) ShowTable() error {
 		if err != nil {
 			return err
 		}
-		fmt.Printf("%-10s %-64s %#-25v %-10s %-40s %#-6v\n", id, StorageID, Jr.MetaInfo, Jr.DataType, Jr.SaveTime, sended)
+		var Meta string
+		if len(Jr.MetaInfo) > 20 {
+			Meta = Jr.MetaInfo[:20]
+		} else {
+			Meta = Jr.MetaInfo
+		}
+		fmt.Printf("%-5s %-64s %#-25v %-10s %-40s %#-6v\n", id, StorageID, Meta, Jr.DataType, Jr.SaveTime, sended)
 	}
 	if err := rows.Err(); err != nil {
 		return err

@@ -22,7 +22,7 @@ func NewBinStor(StorageDir string) *BinStor {
 // SaveBinData функция сохранения данных в бинарное хранилище
 func (s *BinStor) SaveBinData(storageID string, binData []byte) error {
 	// открываем\создаем файл для записи
-	file, err := os.OpenFile(s.StorageDir+storageID, os.O_WRONLY|os.O_CREATE, 0644)
+	file, err := os.OpenFile(s.StorageDir+storageID, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
 	}
