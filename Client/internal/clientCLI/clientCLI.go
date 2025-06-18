@@ -1,6 +1,7 @@
 package clientcli
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 
@@ -40,14 +41,23 @@ var userLogin = &cobra.Command{
 	Use:   "login",
 	Short: "Login user. Where 1st your login and 2nd your password",
 	Long:  `Авторизация пользователя. Параметры: [1]Логин [2]Пароль`,
-	Args:  cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		req, err := requseter.NewRequester(viper.GetString("addr"))
 		if err != nil {
 			fmt.Printf("\nError in starting requester: %s\n", err.Error())
 			return
 		}
-		err = req.LoginRequest(args[0], args[1])
+		// просим ввести данные пользователя
+		fmt.Printf("\nВведите данные для авторизации\n")
+		fmt.Printf("Имя пользователя: ")
+		// открываем потоковое чтение из консоли
+		reader := bufio.NewReader(os.Stdin)
+		// считывваем все данные из консоли
+		Login, err := reader.ReadString('\n')
+
+		fmt.Printf("Введите пароль: ")
+		Password, err := reader.ReadString('\n')
+		err = req.LoginRequest(Login, Password)
 		if err != nil {
 			fmt.Printf("\nError in LoginRequest: %s\n", err.Error())
 			return
@@ -60,14 +70,23 @@ var userRegister = &cobra.Command{
 	Use:   "register",
 	Short: "Register. Where 1st your login and 2nd your password",
 	Long:  `Регистрация новго пользователя. Параметры: [1]Логин [2]Пароль`,
-	Args:  cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		req, err := requseter.NewRequester(viper.GetString("addr"))
 		if err != nil {
 			fmt.Printf("\nError in starting requester: %s\n", err.Error())
 			return
 		}
-		err = req.RegisterRequest(args[0], args[1])
+		// просим ввести данные пользователя
+		fmt.Printf("\nВведите данные для авторизации\n")
+		fmt.Printf("Имя пользователя: ")
+		// открываем потоковое чтение из консоли
+		reader := bufio.NewReader(os.Stdin)
+		// считывваем все данные из консоли
+		Login, err := reader.ReadString('\n')
+
+		fmt.Printf("Введите пароль: ")
+		Password, err := reader.ReadString('\n')
+		err = req.RegisterRequest(Login, Password)
 		if err != nil {
 			fmt.Printf("\nError in RegisterRequest: %s\n", err.Error())
 			return
